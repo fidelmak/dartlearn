@@ -1,0 +1,1478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DartQuest — Learn Dart by Doing</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Space+Grotesk:wght@300;400;600;700&family=Unbounded:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --panel: #0f1424;
+    --border: #1e2a45;
+    --dart-blue: #00b4ff;
+    --dart-teal: #00e5cc;
+    --dart-pink: #ff3cac;
+    --dart-yellow: #ffe600;
+    --success: #00ff87;
+    --error: #ff4444;
+    --text: #e8eaf6;
+    --muted: #5a6a8a;
+    --code-bg: #080c18;
+    --glow: 0 0 20px rgba(0,180,255,0.3);
+    --glow-pink: 0 0 20px rgba(255,60,172,0.3);
+    --glow-green: 0 0 20px rgba(0,255,135,0.3);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    font-family: 'Space Grotesk', sans-serif;
+    color: var(--text);
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Animated background grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,180,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,180,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* HEADER */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 24px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(15,20,36,0.95);
+    backdrop-filter: blur(12px);
+    position: relative;
+    z-index: 10;
+    flex-shrink: 0;
+  }
+
+  .logo {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 900;
+    font-size: 1.3rem;
+    background: linear-gradient(90deg, var(--dart-blue), var(--dart-teal));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.02em;
+  }
+
+  .logo span {
+    background: linear-gradient(90deg, var(--dart-pink), var(--dart-yellow));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .progress-bar-wrap {
+    flex: 1;
+    max-width: 400px;
+    margin: 0 24px;
+  }
+
+  .progress-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 5px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .progress-track {
+    height: 4px;
+    background: var(--border);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--dart-blue), var(--dart-teal));
+    border-radius: 99px;
+    transition: width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 0 12px var(--dart-teal);
+  }
+
+  .stats {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+  }
+
+  .stat-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--muted);
+    background: var(--border);
+    padding: 5px 12px;
+    border-radius: 99px;
+    border: 1px solid transparent;
+    transition: all 0.3s;
+  }
+
+  .stat-pill.xp { border-color: rgba(0,229,204,0.3); color: var(--dart-teal); }
+  .stat-pill.streak { border-color: rgba(255,230,0,0.3); color: var(--dart-yellow); }
+  .stat-pill.level { border-color: rgba(0,180,255,0.3); color: var(--dart-blue); }
+
+  /* CHAPTER NAV */
+  .chapter-nav {
+    display: flex;
+    gap: 0;
+    padding: 0 24px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(10,14,26,0.8);
+    flex-shrink: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .chapter-nav::-webkit-scrollbar { display: none; }
+
+  .chapter-tab {
+    padding: 10px 20px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .chapter-tab:hover { color: var(--text); }
+  .chapter-tab.active { color: var(--dart-blue); border-bottom-color: var(--dart-blue); }
+  .chapter-tab.done { color: var(--success); }
+  .chapter-tab.done::before { content: '✓ '; }
+  .chapter-tab.locked { opacity: 0.35; cursor: not-allowed; }
+
+  /* MAIN SPLIT */
+  .main {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* LEFT — QUESTION PANEL */
+  .question-panel {
+    width: 42%;
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--panel);
+  }
+
+  .panel-header {
+    padding: 16px 20px 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+
+  .step-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 4px;
+    background: rgba(0,180,255,0.12);
+    color: var(--dart-blue);
+    border: 1px solid rgba(0,180,255,0.25);
+    letter-spacing: 0.08em;
+  }
+
+  .lesson-title {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .question-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 20px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  .question-body::-webkit-scrollbar { width: 4px; }
+  .question-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+  .concept-block {
+    margin-bottom: 24px;
+    animation: slideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .concept-label {
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--dart-pink);
+    margin-bottom: 8px;
+  }
+
+  .concept-text {
+    font-size: 0.88rem;
+    line-height: 1.7;
+    color: #b8c5e0;
+  }
+
+  .concept-text strong {
+    color: var(--dart-teal);
+    font-weight: 600;
+  }
+
+  .concept-text code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    background: var(--code-bg);
+    color: var(--dart-yellow);
+    padding: 1px 6px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+  }
+
+  .example-block {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 16px 0;
+    position: relative;
+  }
+
+  .example-block::before {
+    content: 'EXAMPLE';
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+  }
+
+  .example-block pre {
+    padding: 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    line-height: 1.65;
+    overflow-x: auto;
+    white-space: pre;
+  }
+
+  .kw { color: #c792ea; }
+  .fn { color: #82aaff; }
+  .str { color: #c3e88d; }
+  .num { color: #f78c6c; }
+  .cmt { color: #546e7a; font-style: italic; }
+  .type { color: var(--dart-teal); }
+  .var { color: #eeffff; }
+  .op { color: var(--dart-pink); }
+
+  .task-block {
+    background: rgba(0,180,255,0.05);
+    border: 1px solid rgba(0,180,255,0.2);
+    border-radius: 10px;
+    padding: 16px;
+    margin-top: 16px;
+  }
+
+  .task-title {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--dart-blue);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .task-title::before { content: '⚡'; font-size: 0.8rem; }
+
+  .task-text {
+    font-size: 0.85rem;
+    line-height: 1.65;
+    color: #b8c5e0;
+  }
+
+  .hint-btn {
+    margin-top: 14px;
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.72rem;
+    padding: 6px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.05em;
+  }
+  .hint-btn:hover { border-color: var(--dart-yellow); color: var(--dart-yellow); }
+
+  .hint-reveal {
+    display: none;
+    margin-top: 12px;
+    padding: 12px 14px;
+    background: rgba(255,230,0,0.05);
+    border: 1px solid rgba(255,230,0,0.2);
+    border-radius: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--dart-yellow);
+    line-height: 1.6;
+  }
+  .hint-reveal.show { display: block; animation: fadeIn 0.3s ease; }
+
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  /* RIGHT — CODE EDITOR PANEL */
+  .editor-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: var(--code-bg);
+    overflow: hidden;
+  }
+
+  .editor-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(15,20,36,0.8);
+    flex-shrink: 0;
+  }
+
+  .file-tab {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--dart-teal);
+    background: rgba(0,229,204,0.08);
+    border: 1px solid rgba(0,229,204,0.2);
+    padding: 4px 14px;
+    border-radius: 4px;
+  }
+
+  .editor-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .run-btn {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, var(--dart-blue), var(--dart-teal));
+    color: #000;
+    border: none;
+    padding: 7px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 0 16px rgba(0,180,255,0.3);
+  }
+  .run-btn:hover { transform: translateY(-1px); box-shadow: 0 0 24px rgba(0,180,255,0.5); }
+  .run-btn:active { transform: translateY(0); }
+
+  .reset-btn {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.72rem;
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 6px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .reset-btn:hover { border-color: var(--dart-pink); color: var(--dart-pink); }
+
+  /* CODE EDITOR */
+  .editor-wrap {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+  }
+
+  .line-nums {
+    padding: 16px 0;
+    text-align: right;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    line-height: 1.6;
+    color: var(--muted);
+    padding-right: 16px;
+    padding-left: 12px;
+    user-select: none;
+    flex-shrink: 0;
+    background: rgba(0,0,0,0.2);
+    border-right: 1px solid var(--border);
+    min-width: 48px;
+    overflow: hidden;
+  }
+
+  #code-editor {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #eeffff;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    line-height: 1.6;
+    padding: 16px;
+    resize: none;
+    tab-size: 2;
+    caret-color: var(--dart-blue);
+    white-space: pre;
+    overflow: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+  #code-editor::-webkit-scrollbar { width: 6px; height: 6px; }
+  #code-editor::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+  /* OUTPUT */
+  .output-panel {
+    height: 140px;
+    border-top: 1px solid var(--border);
+    background: #05080f;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+  }
+
+  .output-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+
+  .output-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--muted);
+    transition: all 0.3s;
+  }
+  .output-dot.running { background: var(--dart-yellow); box-shadow: 0 0 8px var(--dart-yellow); animation: pulse 0.6s infinite; }
+  .output-dot.success { background: var(--success); box-shadow: 0 0 8px var(--success); }
+  .output-dot.error { background: var(--error); box-shadow: 0 0 8px var(--error); }
+
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+  #output-area {
+    flex: 1;
+    padding: 10px 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    line-height: 1.65;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  .out-success { color: var(--success); }
+  .out-error { color: var(--error); }
+  .out-info { color: var(--dart-blue); }
+  .out-muted { color: var(--muted); }
+  .out-correct { color: var(--dart-yellow); }
+
+  /* FEEDBACK OVERLAY */
+  .feedback-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  .feedback-overlay.show { opacity: 1; pointer-events: all; }
+
+  .feedback-card {
+    background: var(--panel);
+    border-radius: 20px;
+    padding: 40px;
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+    border: 1px solid var(--border);
+    transform: scale(0.9) translateY(20px);
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .feedback-overlay.show .feedback-card { transform: scale(1) translateY(0); }
+
+  .feedback-emoji { font-size: 3rem; margin-bottom: 16px; display: block; }
+  .feedback-title {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 900;
+    margin-bottom: 8px;
+  }
+  .feedback-title.success { color: var(--success); text-shadow: var(--glow-green); }
+  .feedback-title.fail { color: var(--dart-pink); }
+  .feedback-msg { font-size: 0.85rem; color: var(--muted); line-height: 1.6; margin-bottom: 24px; }
+
+  .xp-gained {
+    display: inline-block;
+    background: rgba(0,229,204,0.1);
+    border: 1px solid rgba(0,229,204,0.3);
+    color: var(--dart-teal);
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 0.8rem;
+    padding: 6px 16px;
+    border-radius: 99px;
+    margin-bottom: 24px;
+  }
+
+  .continue-btn {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--dart-blue), var(--dart-teal));
+    color: #000;
+    border: none;
+    padding: 12px 32px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.05em;
+    width: 100%;
+    box-shadow: 0 0 20px rgba(0,180,255,0.3);
+  }
+  .continue-btn:hover { transform: translateY(-2px); box-shadow: 0 0 30px rgba(0,180,255,0.5); }
+
+  /* CHAPTER COMPLETE OVERLAY */
+  .chapter-complete {
+    display: none;
+    text-align: center;
+    padding: 32px;
+    animation: slideIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .chapter-complete.show { display: block; }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+  /* Particle burst */
+  .particle {
+    position: fixed;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 999;
+    animation: burst 0.8s ease-out forwards;
+  }
+  @keyframes burst {
+    0% { transform: translate(0,0) scale(1); opacity: 1; }
+    100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .question-panel { width: 100%; border-right: none; }
+    .main { flex-direction: column; }
+    .editor-panel { min-height: 60vh; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Dart<span>Quest</span></div>
+  <div class="progress-bar-wrap">
+    <div class="progress-label">
+      <span id="chapter-name">Variables</span>
+      <span id="step-counter">0 / 0</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+  </div>
+  <div class="stats">
+    <div class="stat-pill xp">⚡ <span id="xp-count">0</span> XP</div>
+    <div class="stat-pill streak">🔥 <span id="streak-count">0</span></div>
+    <div class="stat-pill level">Lv <span id="level-count">1</span></div>
+  </div>
+</header>
+
+<nav class="chapter-nav" id="chapter-nav"></nav>
+
+<div class="main">
+  <!-- LEFT PANEL -->
+  <div class="question-panel">
+    <div class="panel-header">
+      <div class="step-badge" id="step-badge">STEP 1</div>
+      <div class="lesson-title" id="lesson-title">Getting Started</div>
+    </div>
+    <div class="question-body" id="question-body"></div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="editor-panel">
+    <div class="editor-topbar">
+      <div class="file-tab">📄 main.dart</div>
+      <div class="editor-actions">
+        <button class="reset-btn" onclick="resetCode()">↺ Reset</button>
+        <button class="run-btn" onclick="checkCode()">▶ Run & Check</button>
+      </div>
+    </div>
+    <div class="editor-wrap">
+      <div class="line-nums" id="line-nums">1</div>
+      <textarea id="code-editor" spellcheck="false" autocorrect="off" autocapitalize="off"
+        onkeydown="handleTab(event)" oninput="updateLineNums()"></textarea>
+    </div>
+    <div class="output-panel">
+      <div class="output-header">
+        <div class="output-dot" id="output-dot"></div>
+        OUTPUT CONSOLE
+      </div>
+      <div id="output-area"><span class="out-muted">// Write your code and click Run & Check...</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- FEEDBACK OVERLAY -->
+<div class="feedback-overlay" id="feedback-overlay">
+  <div class="feedback-card">
+    <span class="feedback-emoji" id="feedback-emoji">🎉</span>
+    <div class="feedback-title" id="feedback-title">Correct!</div>
+    <div class="feedback-msg" id="feedback-msg"></div>
+    <div class="xp-gained" id="xp-gained">+50 XP</div>
+    <button class="continue-btn" onclick="nextStep()">Continue →</button>
+  </div>
+</div>
+
+<script>
+// ============================================================
+//  CURRICULUM DATA
+// ============================================================
+const curriculum = [
+  {
+    id: 'variables',
+    name: 'Variables',
+    icon: '📦',
+    steps: [
+      {
+        title: 'Declare a Variable',
+        badge: 'LESSON 1',
+        xp: 50,
+        question: `
+<div class="concept-block">
+  <div class="concept-label">What is a Variable?</div>
+  <div class="concept-text">
+    A <strong>variable</strong> is a named container that stores a value in memory.
+    In Dart, you declare variables using a <code>type</code> keyword, <code>var</code>, or <code>final</code>.
+  </div>
+</div>
+<div class="example-block"><pre><span class="kw">var</span> <span class="var">name</span> <span class="op">=</span> <span class="str">'Dart'</span>;
+<span class="type">String</span> <span class="var">city</span> <span class="op">=</span> <span class="str">'Lagos'</span>;
+<span class="type">int</span> <span class="var">age</span> <span class="op">=</span> <span class="num">25</span>;
+<span class="type">double</span> <span class="var">pi</span> <span class="op">=</span> <span class="num">3.14</span>;
+<span class="type">bool</span> <span class="var">isDev</span> <span class="op">=</span> <span class="kw">true</span>;</pre></div>
+<div class="task-block">
+  <div class="task-title">Your Task</div>
+  <div class="task-text">
+    Declare a variable called <code>myName</code> using <code>var</code> and assign your name as a String to it.<br><br>
+    Then use <code>print(myName);</code> to display it.
+  </div>
+  <button class="hint-btn" onclick="toggleHint(this)">💡 Show Hint</button>
+  <div class="hint-reveal">var myName = 'YourName';<br>print(myName);</div>
+</div>`,
+        starterCode: `void main() {\n  // Declare your variable here\n  \n}`,
+        check: (code) => {
+          const hasVar = /var\s+myName\s*=\s*['"][^'"]+['"]/.test(code) || /String\s+myName\s*=\s*['"][^'"]+['"]/.test(code);
+          const hasPrint = /print\s*\(\s*myName\s*\)/.test(code);
+          if (!hasVar) return { ok: false, msg: 'Declare a variable called myName with a String value.' };
+          if (!hasPrint) return { ok: false, msg: 'Add print(myName); to display your variable.' };
+          const match = code.match(/['"]([^'"]+)['"]/);
+          return { ok: true, output: match ? match[1] : 'Hello!' };
+        }
+      },
+      {
+        title: 'final vs const',
+        badge: 'LESSON 2',
+        xp: 60,
+        question: `
+<div class="concept-block">
+  <div class="concept-label">Immutable Variables</div>
+  <div class="concept-text">
+    <strong>final</strong> — set once at runtime, cannot be changed after.<br>
+    <strong>const</strong> — compile-time constant, must be known before the program runs.
+  </div>
+</div>
+<div class="example-block"><pre><span class="kw">final</span> <span class="var">appName</span> <span class="op">=</span> <span class="str">'DartQuest'</span>;
+<span class="kw">const</span> <span class="type">double</span> <span class="var">gravity</span> <span class="op">=</span> <span class="num">9.8</span>;
+<span class="cmt">// appName = 'other'; // ❌ Error!</span></pre></div>
+<div class="task-block">
+  <div class="task-title">Your Task</div>
+  <div class="task-text">
+    Declare a <code>final</code> variable called <code>country</code> set to <code>'Nigeria'</code>.<br>
+    Declare a <code>const</code> variable called <code>maxScore</code> set to <code>100</code>.<br>
+    Print both on separate lines.
+  </div>
+  <button class="hint-btn" onclick="toggleHint(this)">💡 Show Hint</button>
+  <div class="hint-reveal">final country = 'Nigeria';<br>const maxScore = 100;<br>print(country);<br>print(maxScore);</div>
+</div>`,
+        starterCode: `void main() {\n  // final and const variables\n  \n}`,
+        check: (code) => {
+          const hasFinal = /final\s+\w*\s*country\s*=\s*['"]Nigeria['"]/.test(code);
+          const hasConst = /const\s+[\w\s]*maxScore\s*=\s*100/.test(code);
+          const hasPrint1 = /print\s*\(\s*country\s*\)/.test(code);
+          const hasPrint2 = /print\s*\(\s*maxScore\s*\)/.test(code);
+          if (!hasFinal) return { ok: false, msg: "Declare: final country = 'Nigeria';" };
+          if (!hasConst) return { ok: false, msg: 'Declare: const maxScore = 100;' };
+          if (!hasPrint1 || !hasPrint2) return { ok: false, msg: 'Print both country and maxScore.' };
+          return { ok: true, output: 'Nigeria\n100' };
+        }
+      },
+      {
+        title: 'String Interpolation',
+        badge: 'LESSON 3',
+        xp: 70,
+        question: `
+<div class="concept-block">
+  <div class="concept-label">Embed Variables in Strings</div>
+  <div class="concept-text">
+    Dart uses <strong>string interpolation</strong> with <code>$variable</code> or <code>${'{'}expression{'}'}</code> inside a string. It's cleaner than concatenation!
+  </div>
+</div>
+<div class="example-block"><pre><span class="kw">var</span> <span class="var">lang</span> <span class="op">=</span> <span class="str">'Dart'</span>;
+<span class="kw">var</span> <span class="var">year</span> <span class="op">=</span> <span class="num">2011</span>;
+<span class="fn">print</span>(<span class="str">'I love <span class="op">$</span>lang since <span class="op">$</span>year!'</span>);
+<span class="fn">print</span>(<span class="str">'2 + 2 = <span class="op">${'}</span>2<span class="op">+</span>2<span class="op">{'}</span>'</span>);</pre></div>
+<div class="task-block">
+  <div class="task-title">Your Task</div>
+  <div class="task-text">
+    Declare <code>var firstName = 'Ada';</code> and <code>var lastName = 'Lovelace';</code><br>
+    Print: <code>Hello, Ada Lovelace!</code> using <strong>string interpolation</strong> (not concatenation).
+  </div>
+  <button class="hint-btn" onclick="toggleHint(this)">💡 Show Hint</button>
+  <div class="hint-reveal">print('Hello, $firstName $lastName!');</div>
+</div>`,
+        starterCode: `void main() {\n  var firstName = 'Ada';\n  var lastName = 'Lovelace';\n  // Use interpolation to print: Hello, Ada Lovelace!\n  \n}`,
+        check: (code) => {
+          const hasInterp = /print\s*\(\s*['"`][^'"]*\$firstName[^'"]*\$lastName[^'"]*['"`]\s*\)/.test(code) ||
+                            /print\s*\(\s*['"`][^'"]*\$\{firstName\}[^'"]*\$\{lastName\}[^'"]*['"`]\s*\)/.test(code);
+          const noConcat = !/firstName\s*\+/.test(code);
+          if (!hasInterp) return { ok: false, msg: 'Use $firstName and $lastName inside the string.' };
+          return { ok: true, output: 'Hello, Ada Lovelace!' };
+        }
+      }
+    ]
+  },
+  {
+    id: 'functions',
+    name: 'Functions',
+    icon: '⚙️',
+    steps: [
+      {
+        title: 'Write Your First Function',
+        badge: 'LESSON 1',
+        xp: 80,
+        question: `
+<div class="concept-block">
+  <div class="concept-label">What is a Function?</div>
+  <div class="concept-text">
+    A <strong>function</strong> is a reusable block of code. In Dart, functions have a <strong>return type</strong>, a <strong>name</strong>, and <strong>parameters</strong>.
+  </div>
+</div>
+<div class="example-block"><pre><span class="type">String</span> <span class="fn">greet</span>(<span class="type">String</span> <span class="var">name</span>) {
+  <span class="kw">return</span> <span class="str">'Hello, <span class="op">$</span>name!'</span>;
+}
+
+<span class="kw">void</span> <span class="fn">main</span>() {
+  <span class="fn">print</span>(<span class="fn">greet</span>(<span class="str">'World'</span>));
+}</pre></div>
+<div class="task-block">
+  <div class="task-title">Your Task</div>
+  <div class="task-text">
+    Write a function called <code>add</code> that takes two <code>int</code> parameters (<code>a</code> and <code>b</code>) and returns their sum.<br><br>
+    In <code>main()</code>, call <code>add(3, 4)</code> and print the result.
+  </div>
+  <button class="hint-btn" onclick="toggleHint(this)">💡 Show Hint</button>
+  <div class="hint-reveal">int add(int a, int b) {'{'}<br>  return a + b;<br>{'}'}<br>print(add(3, 4));</div>
+</div>`,
+        starterCode: `// Write your function above main()\n\nvoid main() {\n  // Call add(3, 4) and print the result\n  \n}`,
+        check: (code) => {
+          const hasFn = /int\s+add\s*\(\s*int\s+\w+\s*,\s*int\s+\w+\s*\)/.test(code);
+          const hasReturn = /return\s+\w+\s*\+\s*\w+/.test(code);
+          const hasCall = /print\s*\(\s*add\s*\(\s*3\s*,\s*4\s*\)\s*\)/.test(code);
+          if (!hasFn) return { ok: false, msg: 'Write a function: int add(int a, int b) { ... }' };
+          if (!hasReturn) return { ok: false, msg: 'Return a + b inside the function.' };
+          if (!hasCall) return { ok: false, msg: 'Call print(add(3, 4)); in main().' };
+          return { ok: true, output: '7' };
+        }
+      },
+      {
+        title: 'void Functions',
+        badge: 'LESSON 2',
+        xp: 70,
+        question: `
+<div class="concept-block">
+  <div class="concept-label">Functions that Return Nothing</div>
+  <div class="concept-text">
+    Use <code>void</code> when a function <strong>performs an action</strong> but doesn't return a value. These are great for side effects like printing.
+  </div>
+</div>
+<div class="example-block"><pre><span class="kw">void</span> <span class="fn">sayHello</span>(<span class="type">String</span> <span class="var">name</span>) {
+  <span class="fn">print</span>(<span class="str">'Hi, <span class="op">$</span>name! Welcome to Dart.'</span>);
+}
+
+<span class="kw">void</span> <span class="fn">main</span>() {
+  <span class="fn">sayHello</span>(<span class="str">'Flutter Dev'</span>);
+}</pre></div>
+<div class="task-block">
+  <div class="task-title">Your Task</div>
+  <div class="task-text">
+    Write a <code>void</code> function called <code>countdown</code> that takes an <code>int n</code> and prints each number from <code>n</code> down to <code>1</code> using a <code>for</code> loop.
+    Call <code>countdown(5)</code> in main.
+  </div>
+  <button class="hint-btn" onclick="toggleHint(this)">💡 Show Hint</button>
+  <div class="hint-reveal">void countdown(int n) {'{'}<br>  for (int i = n; i >= 1; i--) {'{'}<br>    print(i);<br>  {'}'}<br>{'}'}</div>
+</div>`,
+        starterCode: `// Write countdown() here\n\nvoid main() {\n  countdown(5);\n}`,
+        check: (code) => {
+          const hasFn = /void\s+countdown\s*\(\s*int\s+\w+\s*\)/.test(code);
+          const hasLoop = /for\s*\(/.test(code);
+          const hasPrint = /print\s*\(/.test(code);
+          if (!hasFn) return { ok: false, msg: 'Write: void countdown(int n) { ... }' };
+          if (!hasLoop) return { ok: false, msg: 'Use a for loop inside countdown.' };
+          if (!hasPrint) return { ok: false, msg: 'Print each number inside the loop.' };
+          return { ok: true, output: '5\n4\n3\n2\n1' };
+        }
+      },
+      {
+        title: 'Arrow Functions',
+        badge: 'LESSON 3',
+        xp: 90,
+        question: `
+<div class="concept-block">
+  <div class="concept-label">Short Syntax with =></div>
+  <div class="concept-text">
+    For single-expression functions, Dart has a slick <strong>arrow syntax</strong> using <code>=></code>. It's equivalent to a full function but much shorter.
+  </div>
+</div>
+<div class="example-block"><pre><span class="cmt">// Regular</span>
+<span class="type">int</span> <span class="fn">square</span>(<span class="type">int</span> <span class="var">n</span>) {
+  <span class="kw">return</span> <span class="var">n</span> <span class="op">*</span> <span class="var">n</span>;
+}
+
+<span class="cmt">// Arrow version</span>
+<span class="type">int</span> <span class="fn">square</span>(<span class="type">int</span> <span class="var">n</span>) <span class="op">=></span> <span class="var">n</span> <span class="op">*</span> <span class="var">n</span>;</pre></div>
+<div class="task-block">
+  <div class="task-title">Your Task</div>
+  <div class="task-text">
+    Write an <strong>arrow function</strong> called <code>double</code> that takes an <code>int n</code> and returns <code>n * 2</code>.<br><br>
+    Print <code>double(6)</code> in main.
+  </div>
+  <button class="hint-btn" onclick="toggleHint(this)">💡 Show Hint</button>
+  <div class="hint-reveal">int double(int n) => n * 2;<br>print(double(6));</div>
+</div>`,
+        starterCode: `// Write your arrow function here\n\nvoid main() {\n  print(double(6));\n}`,
+        check: (code) => {
+          const hasArrow = /int\s+double\s*\(\s*int\s+\w+\s*\)\s*=>/.test(code) || /\w+\s+double\s*\(.*\)\s*=>/.test(code);
+          const hasMultiply = /=>\s*\w+\s*\*\s*2/.test(code);
+          if (!hasArrow) return { ok: false, msg: 'Use arrow syntax: int double(int n) => ...' };
+          if (!hasMultiply) return { ok: false, msg: 'Return n * 2 using => syntax.' };
+          return { ok: true, output: '12' };
+        }
+      }
+    ]
+  },
+  {
+    id: 'classes',
+    name: 'Classes',
+    icon: '🏗️',
+    steps: [
+      {
+        title: 'Your First Class',
+        badge: 'LESSON 1',
+        xp: 100,
+        question: `
+<div class="concept-block">
+  <div class="concept-label">Object-Oriented Dart</div>
+  <div class="concept-text">
+    A <strong>class</strong> is a blueprint for creating objects. It groups <strong>properties</strong> (data) and <strong>methods</strong> (behavior) together.
+  </div>
+</div>
+<div class="example-block"><pre><span class="kw">class</span> <span class="type">Dog</span> {
+  <span class="type">String</span> <span class="var">name</span>;
+  <span class="type">int</span> <span class="var">age</span>;
+
+  <span class="type">Dog</span>(<span class="kw">this</span>.<span class="var">name</span>, <span class="kw">this</span>.<span class="var">age</span>);
+
+  <span class="kw">void</span> <span class="fn">bark</span>() {
+    <span class="fn">print</span>(<span class="str">'<span class="op">$</span>name says: Woof!'</span>);
+  }
+}
+
+<span class="kw">void</span> <span class="fn">main</span>() {
+  <span class="kw">var</span> <span class="var">d</span> <span class="op">=</span> <span class="type">Dog</span>(<span class="str">'Rex'</span>, <span class="num">3</span>);
+  <span class="var">d</span>.<span class="fn">bark</span>();
+}</pre></div>
+<div class="task-block">
+  <div class="task-title">Your Task</div>
+  <div class="task-text">
+    Create a class called <code>Car</code> with:<br>
+    • A <code>String brand</code> property<br>
+    • A constructor using <code>this.brand</code><br>
+    • A method <code>describe()</code> that prints <code>I drive a [brand].</code><br><br>
+    Create a <code>Car</code> with brand <code>'Tesla'</code> and call <code>describe()</code>.
+  </div>
+  <button class="hint-btn" onclick="toggleHint(this)">💡 Show Hint</button>
+  <div class="hint-reveal">class Car {'{'}<br>  String brand;<br>  Car(this.brand);<br>  void describe() => print('I drive a $brand.');<br>{'}'}</div>
+</div>`,
+        starterCode: `// Define your Car class here\n\nvoid main() {\n  // Create a Car and call describe()\n  \n}`,
+        check: (code) => {
+          const hasClass = /class\s+Car/.test(code);
+          const hasBrand = /String\s+brand/.test(code);
+          const hasCtor = /Car\s*\(\s*this\.brand\s*\)/.test(code);
+          const hasMethod = /describe/.test(code);
+          const hasCreate = /Car\s*\(\s*['"]Tesla['"]\s*\)/.test(code);
+          if (!hasClass) return { ok: false, msg: 'Define a class called Car.' };
+          if (!hasBrand) return { ok: false, msg: 'Add a String brand property.' };
+          if (!hasCtor) return { ok: false, msg: 'Add constructor: Car(this.brand);' };
+          if (!hasMethod) return { ok: false, msg: 'Add a describe() method.' };
+          if (!hasCreate) return { ok: false, msg: "Create a Car('Tesla') in main." };
+          return { ok: true, output: 'I drive a Tesla.' };
+        }
+      },
+      {
+        title: 'Getters & Named Constructors',
+        badge: 'LESSON 2',
+        xp: 110,
+        question: `
+<div class="concept-block">
+  <div class="concept-label">Advanced Class Features</div>
+  <div class="concept-text">
+    <strong>Getters</strong> compute a value from properties. <strong>Named constructors</strong> let you create objects in different ways.
+  </div>
+</div>
+<div class="example-block"><pre><span class="kw">class</span> <span class="type">Circle</span> {
+  <span class="type">double</span> <span class="var">radius</span>;
+  <span class="type">Circle</span>(<span class="kw">this</span>.<span class="var">radius</span>);
+
+  <span class="cmt">// Named constructor</span>
+  <span class="type">Circle</span>.<span class="fn">unit</span>() : <span class="var">radius</span> <span class="op">=</span> <span class="num">1.0</span>;
+
+  <span class="cmt">// Getter</span>
+  <span class="kw">double</span> <span class="kw">get</span> <span class="var">area</span> <span class="op">=></span> <span class="num">3.14</span> <span class="op">*</span> <span class="var">radius</span> <span class="op">*</span> <span class="var">radius</span>;
+}</pre></div>
+<div class="task-block">
+  <div class="task-title">Your Task</div>
+  <div class="task-text">
+    Create a class <code>Rectangle</code> with <code>double width</code> and <code>double height</code>.<br>
+    Add a getter called <code>area</code> that returns <code>width * height</code>.<br>
+    In main, create a Rectangle(5, 3) and print its area.
+  </div>
+  <button class="hint-btn" onclick="toggleHint(this)">💡 Show Hint</button>
+  <div class="hint-reveal">double get area => width * height;<br>print(Rectangle(5, 3).area);</div>
+</div>`,
+        starterCode: `class Rectangle {\n  double width;\n  double height;\n  Rectangle(this.width, this.height);\n  // Add area getter here\n  \n}\n\nvoid main() {\n  // Print Rectangle(5, 3).area\n  \n}`,
+        check: (code) => {
+          const hasGetter = /double\s+get\s+area/.test(code) || /get\s+area\s*=>/.test(code);
+          const hasMultiply = /width\s*\*\s*height/.test(code);
+          const hasPrint = /print\s*\(.*area.*\)/.test(code) || /print\s*\(.*Rectangle\s*\(/.test(code);
+          if (!hasGetter) return { ok: false, msg: 'Add: double get area => width * height;' };
+          if (!hasMultiply) return { ok: false, msg: 'The getter should return width * height.' };
+          if (!hasPrint) return { ok: false, msg: 'Print the area in main.' };
+          return { ok: true, output: '15.0' };
+        }
+      }
+    ]
+  },
+  {
+    id: 'lists',
+    name: 'Lists',
+    icon: '📋',
+    steps: [
+      {
+        title: 'Create & Access Lists',
+        badge: 'LESSON 1',
+        xp: 80,
+        question: `
+<div class="concept-block">
+  <div class="concept-label">Ordered Collections</div>
+  <div class="concept-text">
+    A <strong>List</strong> in Dart is an ordered collection of items. Similar to arrays. Access items by <strong>index</strong> starting at 0.
+  </div>
+</div>
+<div class="example-block"><pre><span class="kw">var</span> <span class="var">fruits</span> <span class="op">=</span> [<span class="str">'Apple'</span>, <span class="str">'Mango'</span>, <span class="str">'Banana'</span>];
+<span class="fn">print</span>(<span class="var">fruits</span>[<span class="num">0</span>]);  <span class="cmt">// Apple</span>
+<span class="fn">print</span>(<span class="var">fruits</span>.<span class="var">length</span>); <span class="cmt">// 3</span>
+<span class="var">fruits</span>.<span class="fn">add</span>(<span class="str">'Pawpaw'</span>);
+<span class="var">fruits</span>.<span class="fn">remove</span>(<span class="str">'Apple'</span>);</pre></div>
+<div class="task-block">
+  <div class="task-title">Your Task</div>
+  <div class="task-text">
+    Create a list called <code>cities</code> with 3 Nigerian cities.<br>
+    Add a 4th city using <code>.add()</code>.<br>
+    Print the total number of cities using <code>.length</code>.
+  </div>
+  <button class="hint-btn" onclick="toggleHint(this)">💡 Show Hint</button>
+  <div class="hint-reveal">var cities = ['Lagos', 'Abuja', 'Kano'];<br>cities.add('Port Harcourt');<br>print(cities.length);</div>
+</div>`,
+        starterCode: `void main() {\n  // Create your cities list\n  \n}`,
+        check: (code) => {
+          const hasList = /var\s+cities\s*=\s*\[/.test(code) || /List\s*<.*>\s*cities/.test(code);
+          const hasAdd = /cities\.add\s*\(/.test(code);
+          const hasLength = /print\s*\(\s*cities\.length\s*\)/.test(code);
+          if (!hasList) return { ok: false, msg: "Create a list: var cities = ['Lagos', ...];" };
+          if (!hasAdd) return { ok: false, msg: 'Use cities.add(...) to add a 4th city.' };
+          if (!hasLength) return { ok: false, msg: 'Print cities.length.' };
+          return { ok: true, output: '4' };
+        }
+      },
+      {
+        title: 'Loop Through a List',
+        badge: 'LESSON 2',
+        xp: 90,
+        question: `
+<div class="concept-block">
+  <div class="concept-label">Iterating Lists</div>
+  <div class="concept-text">
+    Use <code>for-in</code> loops to iterate through a list cleanly. Or use <code>.forEach()</code> with a lambda for a functional style.
+  </div>
+</div>
+<div class="example-block"><pre><span class="kw">var</span> <span class="var">nums</span> <span class="op">=</span> [<span class="num">10</span>, <span class="num">20</span>, <span class="num">30</span>];
+
+<span class="cmt">// for-in</span>
+<span class="kw">for</span> (<span class="kw">var</span> <span class="var">n</span> <span class="kw">in</span> <span class="var">nums</span>) {
+  <span class="fn">print</span>(<span class="var">n</span>);
+}
+
+<span class="cmt">// forEach</span>
+<span class="var">nums</span>.<span class="fn">forEach</span>((<span class="var">n</span>) <span class="op">=></span> <span class="fn">print</span>(<span class="var">n</span>));</pre></div>
+<div class="task-block">
+  <div class="task-title">Your Task</div>
+  <div class="task-text">
+    Create a list of 4 numbers: <code>[2, 4, 6, 8]</code>.<br>
+    Use a <code>for-in</code> loop to print each number multiplied by 3.
+  </div>
+  <button class="hint-btn" onclick="toggleHint(this)">💡 Show Hint</button>
+  <div class="hint-reveal">for (var n in nums) {'{'}<br>  print(n * 3);<br>{'}'}</div>
+</div>`,
+        starterCode: `void main() {\n  var nums = [2, 4, 6, 8];\n  // Loop and print each number * 3\n  \n}`,
+        check: (code) => {
+          const hasForIn = /for\s*\(\s*var\s+\w+\s+in\s+nums\s*\)/.test(code) || /for\s*\(\s*int\s+\w+\s+in\s+nums\s*\)/.test(code);
+          const hasMultiply = /\*\s*3/.test(code);
+          const hasPrint = /print\s*\(/.test(code);
+          if (!hasForIn) return { ok: false, msg: 'Use: for (var n in nums) { ... }' };
+          if (!hasMultiply) return { ok: false, msg: 'Multiply each element by 3 inside the loop.' };
+          return { ok: true, output: '6\n12\n18\n24' };
+        }
+      }
+    ]
+  },
+  {
+    id: 'maps',
+    name: 'Maps',
+    icon: '🗺️',
+    steps: [
+      {
+        title: 'Key-Value Pairs',
+        badge: 'LESSON 1',
+        xp: 100,
+        question: `
+<div class="concept-block">
+  <div class="concept-label">Dart Maps</div>
+  <div class="concept-text">
+    A <strong>Map</strong> stores data as <strong>key-value pairs</strong>. Like a dictionary — look up a value using its unique key.
+  </div>
+</div>
+<div class="example-block"><pre><span class="kw">var</span> <span class="var">person</span> <span class="op">=</span> {
+  <span class="str">'name'</span>: <span class="str">'Amara'</span>,
+  <span class="str">'age'</span>: <span class="num">28</span>,
+  <span class="str">'city'</span>: <span class="str">'Lagos'</span>,
+};
+
+<span class="fn">print</span>(<span class="var">person</span>[<span class="str">'name'</span>]); <span class="cmt">// Amara</span>
+<span class="var">person</span>[<span class="str">'job'</span>] <span class="op">=</span> <span class="str">'Engineer'</span>; <span class="cmt">// add</span></pre></div>
+<div class="task-block">
+  <div class="task-title">Your Task</div>
+  <div class="task-text">
+    Create a Map called <code>capitals</code> with at least 3 country-capital pairs (e.g. <code>'Nigeria': 'Abuja'</code>).<br>
+    Print the capital of Nigeria.
+  </div>
+  <button class="hint-btn" onclick="toggleHint(this)">💡 Show Hint</button>
+  <div class="hint-reveal">var capitals = {'{'}'Nigeria': 'Abuja', 'Ghana': 'Accra', ...{'}'};<br>print(capitals['Nigeria']);</div>
+</div>`,
+        starterCode: `void main() {\n  // Create your capitals Map\n  \n}`,
+        check: (code) => {
+          const hasMap = /var\s+capitals\s*=\s*\{/.test(code) || /Map\s*<.*>\s*capitals/.test(code);
+          const hasNigeria = /['"](Nigeria|nigeria)['"]\s*:\s*['"]Abuja['"]/.test(code);
+          const hasPrint = /print\s*\(\s*capitals\s*\[\s*['"]Nigeria['"]\s*\]\s*\)/.test(code);
+          if (!hasMap) return { ok: false, msg: "Create a Map: var capitals = {'Nigeria': 'Abuja', ...};" };
+          if (!hasNigeria) return { ok: false, msg: "Add 'Nigeria': 'Abuja' to your map." };
+          if (!hasPrint) return { ok: false, msg: "Print capitals['Nigeria']." };
+          return { ok: true, output: 'Abuja' };
+        }
+      }
+    ]
+  },
+  {
+    id: 'nullsafety',
+    name: 'Null Safety',
+    icon: '🛡️',
+    steps: [
+      {
+        title: 'Nullable Types',
+        badge: 'LESSON 1',
+        xp: 120,
+        question: `
+<div class="concept-block">
+  <div class="concept-label">Dart's Null Safety</div>
+  <div class="concept-text">
+    Dart is <strong>null-safe</strong> by default — variables can't be null unless you explicitly say so with <code>?</code>. This prevents null reference errors!
+  </div>
+</div>
+<div class="example-block"><pre><span class="type">String</span> <span class="var">name</span> <span class="op">=</span> <span class="str">'Ada'</span>;    <span class="cmt">// non-nullable</span>
+<span class="type">String</span><span class="op">?</span> <span class="var">nickname</span>;       <span class="cmt">// nullable (defaults to null)</span>
+
+<span class="fn">print</span>(<span class="var">nickname</span> <span class="op">??</span> <span class="str">'No nickname'</span>); <span class="cmt">// ?? = null-check</span>
+
+<span class="var">nickname</span> <span class="op">=</span> <span class="str">'Ada L'</span>;
+<span class="fn">print</span>(<span class="var">nickname</span>!.<span class="fn">toUpperCase</span>()); <span class="cmt">// ! asserts non-null</span></pre></div>
+<div class="task-block">
+  <div class="task-title">Your Task</div>
+  <div class="task-text">
+    Declare a nullable <code>String? middleName;</code> (leave it null).<br>
+    Print it using the <strong>null-coalescing operator</strong> <code>??</code> so it shows <code>'No middle name'</code> when null.
+  </div>
+  <button class="hint-btn" onclick="toggleHint(this)">💡 Show Hint</button>
+  <div class="hint-reveal">String? middleName;<br>print(middleName ?? 'No middle name');</div>
+</div>`,
+        starterCode: `void main() {\n  // Nullable String variable\n  \n}`,
+        check: (code) => {
+          const hasNullable = /String\?\s+middleName/.test(code);
+          const hasCoalesce = /middleName\s*\?\?\s*['"]No middle name['"]/.test(code);
+          const hasPrint = /print\s*\(/.test(code);
+          if (!hasNullable) return { ok: false, msg: 'Declare: String? middleName;' };
+          if (!hasCoalesce) return { ok: false, msg: "Use: middleName ?? 'No middle name'" };
+          return { ok: true, output: 'No middle name' };
+        }
+      }
+    ]
+  }
+];
+
+// ============================================================
+//  STATE
+// ============================================================
+let state = {
+  chapterIdx: 0,
+  stepIdx: 0,
+  xp: 0,
+  streak: 0,
+  completedSteps: new Set(),
+  completedChapters: new Set(),
+  hintUsed: false
+};
+
+// ============================================================
+//  INIT
+// ============================================================
+function init() {
+  buildChapterNav();
+  loadStep();
+  updateStats();
+}
+
+function buildChapterNav() {
+  const nav = document.getElementById('chapter-nav');
+  nav.innerHTML = '';
+  curriculum.forEach((ch, i) => {
+    const tab = document.createElement('div');
+    tab.className = 'chapter-tab' + (i === state.chapterIdx ? ' active' : '') +
+                    (state.completedChapters.has(i) ? ' done' : '') +
+                    (i > state.chapterIdx && !state.completedChapters.has(i) && !isUnlocked(i) ? ' locked' : '');
+    tab.textContent = ch.icon + ' ' + ch.name;
+    tab.onclick = () => {
+      if (!isUnlocked(i)) return;
+      state.chapterIdx = i;
+      state.stepIdx = 0;
+      buildChapterNav();
+      loadStep();
+    };
+    nav.appendChild(tab);
+  });
+}
+
+function isUnlocked(i) {
+  if (i === 0) return true;
+  return state.completedChapters.has(i-1) || state.chapterIdx === i;
+}
+
+function loadStep() {
+  const ch = curriculum[state.chapterIdx];
+  const step = ch.steps[state.stepIdx];
+
+  document.getElementById('chapter-name').textContent = ch.name;
+  document.getElementById('step-counter').textContent =
+    `${state.stepIdx + 1} / ${ch.steps.length}`;
+  document.getElementById('step-badge').textContent = step.badge;
+  document.getElementById('lesson-title').textContent = step.title;
+  document.getElementById('question-body').innerHTML = step.question;
+  document.getElementById('code-editor').value = step.starterCode;
+  document.getElementById('output-area').innerHTML = '<span class="out-muted">// Write your code and click Run & Check...</span>';
+  document.getElementById('output-dot').className = 'output-dot';
+
+  const fill = ((state.stepIdx) / ch.steps.length) * 100;
+  document.getElementById('progress-fill').style.width = fill + '%';
+
+  updateLineNums();
+}
+
+function updateStats() {
+  document.getElementById('xp-count').textContent = state.xp;
+  document.getElementById('streak-count').textContent = state.streak;
+  document.getElementById('level-count').textContent = Math.floor(state.xp / 200) + 1;
+}
+
+// ============================================================
+//  EDITOR UTILS
+// ============================================================
+function handleTab(e) {
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    const ta = e.target;
+    const start = ta.selectionStart;
+    const end = ta.selectionEnd;
+    ta.value = ta.value.substring(0, start) + '  ' + ta.value.substring(end);
+    ta.selectionStart = ta.selectionEnd = start + 2;
+    updateLineNums();
+  }
+}
+
+function updateLineNums() {
+  const ta = document.getElementById('code-editor');
+  const lines = ta.value.split('\n').length;
+  const nums = document.getElementById('line-nums');
+  nums.innerHTML = Array.from({length: lines}, (_, i) => i+1).join('\n');
+  // sync scroll
+  ta.onscroll = () => { nums.scrollTop = ta.scrollTop; };
+}
+
+function resetCode() {
+  const step = curriculum[state.chapterIdx].steps[state.stepIdx];
+  document.getElementById('code-editor').value = step.starterCode;
+  document.getElementById('output-area').innerHTML = '<span class="out-muted">// Reset. Try again!</span>';
+  document.getElementById('output-dot').className = 'output-dot';
+  updateLineNums();
+}
+
+function toggleHint(btn) {
+  const hint = btn.nextElementSibling;
+  hint.classList.toggle('show');
+  btn.textContent = hint.classList.contains('show') ? '🙈 Hide Hint' : '💡 Show Hint';
+  state.hintUsed = true;
+}
+
+// ============================================================
+//  CHECK CODE
+// ============================================================
+function checkCode() {
+  const code = document.getElementById('code-editor').value;
+  const step = curriculum[state.chapterIdx].steps[state.stepIdx];
+  const dot = document.getElementById('output-dot');
+  const out = document.getElementById('output-area');
+
+  dot.className = 'output-dot running';
+  out.innerHTML = '<span class="out-info">// Running...</span>';
+
+  setTimeout(() => {
+    const result = step.check(code);
+
+    if (result.ok) {
+      dot.className = 'output-dot success';
+      out.innerHTML = `<span class="out-success">✓ Output:\n${result.output || ''}</span>`;
+      
+      const stepKey = `${state.chapterIdx}-${state.stepIdx}`;
+      if (!state.completedSteps.has(stepKey)) {
+        const earned = state.hintUsed ? Math.floor(step.xp * 0.7) : step.xp;
+        state.xp += earned;
+        state.streak++;
+        state.completedSteps.add(stepKey);
+        showFeedback(true, result.output, earned);
+        updateStats();
+        burstParticles();
+      } else {
+        showFeedback(true, result.output, 0);
+      }
+    } else {
+      dot.className = 'output-dot error';
+      out.innerHTML = `<span class="out-error">✗ Not quite:\n${result.msg}</span>`;
+      state.streak = 0;
+      updateStats();
+      shakeEditor();
+    }
+  }, 500);
+  state.hintUsed = false;
+}
+
+function shakeEditor() {
+  const e = document.querySelector('.editor-panel');
+  e.style.animation = 'none';
+  e.style.transform = 'translateX(-6px)';
+  setTimeout(() => { e.style.transform = 'translateX(6px)'; }, 80);
+  setTimeout(() => { e.style.transform = 'translateX(-4px)'; }, 160);
+  setTimeout(() => { e.style.transform = 'translateX(0)'; }, 240);
+}
+
+// ============================================================
+//  FEEDBACK OVERLAY
+// ============================================================
+function showFeedback(success, output, earned) {
+  const overlay = document.getElementById('feedback-overlay');
+  const emoji = document.getElementById('feedback-emoji');
+  const title = document.getElementById('feedback-title');
+  const msg = document.getElementById('feedback-msg');
+  const xpEl = document.getElementById('xp-gained');
+
+  const ch = curriculum[state.chapterIdx];
+  const isLast = state.stepIdx === ch.steps.length - 1;
+  const isLastChapter = state.chapterIdx === curriculum.length - 1;
+
+  if (success) {
+    const emojis = ['🎉', '🚀', '⚡', '🏆', '🔥', '💎', '✨'];
+    emoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    title.textContent = isLast ? 'Chapter Complete!' : 'Correct!';
+    title.className = 'feedback-title success';
+    const msgs = [
+      'Dart is getting easier!',
+      'You crushed it!',
+      'One step closer to Flutter mastery.',
+      'Clean code. Keep going!',
+      'That\'s how it\'s done!'
+    ];
+    msg.textContent = isLast
+      ? (isLastChapter ? '🏅 You completed all chapters! You\'re a Dart champion!' : `You've mastered ${ch.name}! Next chapter unlocked.`)
+      : msgs[Math.floor(Math.random() * msgs.length)];
+    xpEl.textContent = earned > 0 ? `+${earned} XP` : 'Already earned!';
+    xpEl.style.display = earned > 0 ? 'inline-block' : 'none';
+  }
+
+  overlay.classList.add('show');
+}
+
+function nextStep() {
+  document.getElementById('feedback-overlay').classList.remove('show');
+
+  const ch = curriculum[state.chapterIdx];
+  if (state.stepIdx < ch.steps.length - 1) {
+    state.stepIdx++;
+  } else {
+    // Chapter complete
+    state.completedChapters.add(state.chapterIdx);
+    if (state.chapterIdx < curriculum.length - 1) {
+      state.chapterIdx++;
+      state.stepIdx = 0;
+    }
+    buildChapterNav();
+  }
+
+  loadStep();
+  document.getElementById('progress-fill').style.width =
+    ((state.stepIdx) / curriculum[state.chapterIdx].steps.length * 100) + '%';
+}
+
+// ============================================================
+//  PARTICLES
+// ============================================================
+function burstParticles() {
+  const colors = ['#00b4ff','#00e5cc','#ff3cac','#ffe600','#00ff87'];
+  for (let i = 0; i < 20; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const x = window.innerWidth / 2;
+    const y = window.innerHeight / 2;
+    p.style.left = x + 'px';
+    p.style.top = y + 'px';
+    p.style.background = colors[i % colors.length];
+    const angle = (i / 20) * Math.PI * 2;
+    const dist = 100 + Math.random() * 120;
+    p.style.setProperty('--tx', Math.cos(angle) * dist + 'px');
+    p.style.setProperty('--ty', Math.sin(angle) * dist + 'px');
+    document.body.appendChild(p);
+    setTimeout(() => p.remove(), 900);
+  }
+}
+
+// ============================================================
+//  KEYBOARD SHORTCUT
+// ============================================================
+document.addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+    checkCode();
+  }
+});
+
+// START
+init();
+</script>
+</body>
+</html>
