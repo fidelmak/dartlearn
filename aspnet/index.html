@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>ASP.NET Forge — Master Backend by Building</title>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&family=Syne:wght@400;600;700;800&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0c12;
+  --surface: #11141e;
+  --surface2: #161c28;
+  --border: #1f2a3a;
+  --border2: #2a3a50;
+  --dotnet-purple: #5C2D91;
+  --dotnet-violet: #8A2BE2;
+  --dotnet-teal: #00c2b3;
+  --dotnet-blue: #3b82f6;
+  --dotnet-orange: #ff8c42;
+  --dotnet-red: #ef4444;
+  --dotnet-gold: #fbbf24;
+  --success: #10b981;
+  --error: #f43f5e;
+  --text: #e2e8f0;
+  --text2: #94a3b8;
+  --code-bg: #03050a;
+  --glow-p: 0 0 20px rgba(92,45,145,0.4);
+  --glow-t: 0 0 20px rgba(0,194,179,0.3);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--bg);
+  font-family: 'Syne', sans-serif;
+  color: var(--text);
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: radial-gradient(circle at 20% 40%, rgba(92,45,145,0.08) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* HEADER */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 28px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(10,12,18,0.96);
+  backdrop-filter: blur(14px);
+  z-index: 20;
+  flex-shrink: 0;
+  gap: 20px;
+}
+
+.logo-wrap { display: flex; align-items: center; gap: 12px; }
+.logo-icon {
+  width: 38px; height: 38px;
+  background: linear-gradient(135deg, var(--dotnet-purple), var(--dotnet-violet));
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 1rem;
+  box-shadow: var(--glow-p);
+}
+.logo-text { font-weight: 800; font-size: 1.2rem; letter-spacing: -0.02em; }
+.logo-text .asp { color: var(--dotnet-teal); }
+.logo-text .net { color: var(--dotnet-purple); }
+.logo-sub { font-size: 0.55rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text2); }
+
+.prog-row { display: flex; justify-content: space-between; font-size: 0.6rem; font-weight: 600; text-transform: uppercase; color: var(--text2); margin-bottom: 4px; }
+.prog-track { height: 3px; background: var(--border); border-radius: 99px; overflow: hidden; }
+.prog-fill { height: 100%; background: linear-gradient(90deg, var(--dotnet-purple), var(--dotnet-teal)); transition: width 0.5s ease; }
+
+.hud { display: flex; gap: 10px; }
+.hud-chip {
+  font-family: 'Fira Code', monospace; font-size: 0.7rem;
+  padding: 4px 12px; border-radius: 8px; border: 1px solid var(--border2);
+  background: var(--surface); display: flex; align-items: center; gap: 6px;
+}
+.hud-chip.xp { border-color: rgba(92,45,145,0.5); color: var(--dotnet-purple); }
+.hud-chip.flame { border-color: rgba(255,140,66,0.4); color: var(--dotnet-orange); }
+.hud-chip.lvl { border-color: rgba(0,194,179,0.4); color: var(--dotnet-teal); }
+
+/* CHAPTER RAIL */
+.chapter-rail {
+  display: flex; padding: 0 28px; border-bottom: 1px solid var(--border);
+  background: rgba(10,12,18,0.9); flex-shrink: 0; overflow-x: auto; gap: 0;
+}
+.ch-tab {
+  padding: 8px 18px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+  color: var(--text2); cursor: pointer; border-bottom: 2px solid transparent;
+  transition: 0.2s; white-space: nowrap; display: flex; align-items: center; gap: 8px;
+}
+.ch-tab:hover { color: var(--text); }
+.ch-tab.active { color: var(--dotnet-teal); border-bottom-color: var(--dotnet-teal); }
+.ch-tab.done { color: var(--success); }
+.ch-tab.locked { opacity: 0.3; cursor: not-allowed; pointer-events: none; }
+
+/* MAIN SPLIT */
+.arena { display: flex; flex: 1; overflow: hidden; position: relative; z-index: 1; }
+
+/* LESSON PANE */
+.lesson-pane {
+  width: 42%; border-right: 1px solid var(--border);
+  background: var(--surface); display: flex; flex-direction: column;
+  overflow: hidden; flex-shrink: 0;
+}
+.lesson-head {
+  padding: 14px 20px; border-bottom: 1px solid var(--border);
+  background: var(--surface2); flex-shrink: 0;
+}
+.lesson-meta { display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+.badge-step { font-family: 'Fira Code', monospace; font-size: 0.55rem; padding: 2px 8px; border-radius: 4px; background: rgba(92,45,145,0.2); color: var(--dotnet-purple); border: 1px solid rgba(92,45,145,0.4); }
+.badge-topic { font-family: 'Fira Code', monospace; font-size: 0.55rem; padding: 2px 8px; border-radius: 4px; background: rgba(0,194,179,0.1); color: var(--dotnet-teal); }
+.lesson-title { font-weight: 800; font-size: 1rem; letter-spacing: -0.02em; }
+.lesson-body { flex: 1; overflow-y: auto; padding: 20px; scrollbar-width: thin; }
+
+.block { margin-bottom: 20px; animation: fadeUp 0.35s ease both; }
+@keyframes fadeUp { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: translateY(0); } }
+.block-label { font-size: 0.6rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 8px; display: flex; gap: 6px; align-items: center; }
+.concept-text { font-size: 0.85rem; line-height: 1.7; color: #b9c7d9; }
+.concept-text code, .task-text code { font-family: 'Fira Code', monospace; background: var(--code-bg); color: var(--dotnet-gold); padding: 1px 5px; border-radius: 4px; }
+.code-example { background: var(--code-bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin: 12px 0; }
+.code-example-bar { padding: 6px 12px; background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--border); display: flex; gap: 6px; align-items: center; }
+.dot-r { width: 8px; height: 8px; border-radius: 50%; background: #ff5f56; }
+.dot-y { background: #ffbd2e; }
+.dot-g { background: #27c93f; }
+.code-file { margin-left: auto; font-size: 0.6rem; font-family: monospace; color: var(--text2); }
+.code-example pre { padding: 12px 16px; font-family: 'Fira Code', monospace; font-size: 0.75rem; line-height: 1.6; overflow-x: auto; }
+.kw { color: #c792ea; } .kw2 { color: #82aaff; } .str { color: #c3e88d; } .num { color: #f78c6c; } .tp { color: var(--dotnet-teal); } .cmt { color: #546e7a; }
+
+.task-box { background: rgba(92,45,145,0.05); border: 1px solid rgba(92,45,145,0.2); border-radius: 12px; padding: 16px; }
+.task-text { font-size: 0.85rem; line-height: 1.65; }
+.hint-toggle { margin-top: 12px; background: none; border: 1px dashed var(--border2); color: var(--text2); font-family: monospace; font-size: 0.7rem; padding: 4px 12px; border-radius: 6px; cursor: pointer; }
+.hint-box { display: none; margin-top: 12px; background: rgba(251,191,36,0.05); border: 1px solid rgba(251,191,36,0.2); border-radius: 8px; padding: 10px; font-family: monospace; font-size: 0.72rem; color: var(--dotnet-gold); }
+.hint-box.open { display: block; }
+
+/* EDITOR PANE */
+.editor-pane { flex: 1; display: flex; flex-direction: column; background: var(--code-bg); overflow: hidden; }
+.editor-bar { display: flex; justify-content: space-between; align-items: center; padding: 6px 16px; border-bottom: 1px solid var(--border); background: var(--surface); flex-shrink: 0; }
+.file-tab { font-family: 'Fira Code', monospace; font-size: 0.7rem; padding: 4px 14px; background: rgba(0,194,179,0.08); border: 1px solid rgba(0,194,179,0.3); border-radius: 6px; color: var(--dotnet-teal); }
+.editor-controls { display: flex; gap: 12px; align-items: center; }
+.btn-reset, .btn-run {
+  font-family: 'Syne', sans-serif; font-size: 0.7rem; font-weight: 700; padding: 6px 16px;
+  border-radius: 8px; cursor: pointer; transition: 0.2s; border: none;
+}
+.btn-reset { background: transparent; border: 1px solid var(--border2); color: var(--text2); }
+.btn-reset:hover { border-color: var(--dotnet-orange); color: var(--dotnet-orange); }
+.btn-run { background: linear-gradient(135deg, var(--dotnet-purple), var(--dotnet-violet)); color: white; box-shadow: 0 0 12px rgba(92,45,145,0.5); }
+.btn-run:hover { transform: translateY(-1px); filter: brightness(1.05); }
+.editor-area { display: flex; flex: 1; min-height: 0; }
+.line-col { padding: 14px 0; text-align: right; font-family: monospace; font-size: 0.75rem; color: #3e4a5f; background: #03050a; border-right: 1px solid var(--border); min-width: 48px; }
+#editor { flex: 1; background: transparent; border: none; outline: none; color: #e2e8f0; font-family: 'Fira Code', monospace; font-size: 0.78rem; line-height: 1.65; padding: 14px; resize: none; white-space: pre; overflow: auto; caret-color: var(--dotnet-teal); }
+.output-zone { height: 150px; border-top: 1px solid var(--border); background: #05070c; display: flex; flex-direction: column; flex-shrink: 0; }
+.output-bar { padding: 6px 16px; border-bottom: 1px solid var(--border); font-size: 0.6rem; font-weight: 700; text-transform: uppercase; display: flex; justify-content: space-between; }
+.out-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border2); transition: 0.2s; }
+.out-dot.running { background: var(--dotnet-gold); animation: pulse 0.8s infinite; }
+.out-dot.ok { background: var(--success); box-shadow: 0 0 8px var(--success); }
+.out-dot.err { background: var(--error); }
+@keyframes pulse { 0%,100%{ opacity:0.5; } 50%{ opacity:1; } }
+#console { flex:1; padding: 8px 16px; font-family: monospace; font-size: 0.75rem; overflow-y: auto; white-space: pre-wrap; }
+
+/* MODAL */
+.modal-bg {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(12px);
+  display: flex; align-items: center; justify-content: center; z-index: 200;
+  opacity: 0; pointer-events: none; transition: 0.25s;
+}
+.modal-bg.open { opacity: 1; pointer-events: all; }
+.modal-card {
+  background: var(--surface); border: 1px solid var(--dotnet-purple); border-radius: 28px;
+  padding: 36px; max-width: 400px; width: 90%; text-align: center;
+  transform: scale(0.9); transition: transform 0.35s cubic-bezier(0.2,1.2,0.8,1);
+}
+.modal-bg.open .modal-card { transform: scale(1); }
+.modal-glyph { font-size: 3rem; margin-bottom: 10px; }
+.modal-heading { font-family: 'DM Serif Display', serif; font-size: 1.8rem; margin-bottom: 8px; }
+.modal-sub { color: var(--text2); margin-bottom: 20px; }
+.xp-pill { background: rgba(92,45,145,0.2); border-radius: 40px; padding: 4px 16px; display: inline-block; margin-bottom: 24px; font-family: monospace; }
+.modal-btn { background: linear-gradient(135deg, var(--dotnet-purple), var(--dotnet-violet)); border: none; padding: 12px; border-radius: 40px; font-weight: bold; color: white; width: 100%; cursor: pointer; }
+
+.spark { position: fixed; width: 8px; height: 8px; border-radius: 50%; pointer-events: none; z-index: 999; animation: fly 0.8s ease-out forwards; }
+@keyframes fly { 0% { transform: translate(0,0) scale(1); opacity:1; } 100% { transform: translate(var(--dx), var(--dy)) scale(0); opacity:0; } }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-wrap">
+    <div class="logo-icon">ASP</div>
+    <div>---Support Paul with a donation </div> --
+  <div>account number :9072210193 opay--</div>
+    <div><div class="logo-text"><span class="asp">ASP</span><span class="net">.NET</span> Forge</div><div class="logo-sub">Build Modern Web Apps</div></div>
+  </div>
+  <div class="header-mid">
+    <div class="prog-row"><span id="hdr-chapter">Middlewares</span><span id="hdr-steps">0/0</span></div>
+    <div class="prog-track"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+  </div>
+  <div class="hud"><div class="hud-chip xp">⚡ <span id="h-xp">0</span> XP</div><div class="hud-chip flame">🔥 <span id="h-str">0</span></div><div class="hud-chip lvl">Lv <span id="h-lv">1</span></div></div>
+</header>
+
+<nav class="chapter-rail" id="rail"></nav>
+
+<div class="arena">
+  <div class="lesson-pane">
+    <div class="lesson-head"><div class="lesson-meta"><span class="badge-step" id="b-step">STEP 1</span><span class="badge-topic" id="b-topic">ASP.NET CORE</span></div><div class="lesson-title" id="l-title">Welcome to ASP.NET</div></div>
+    <div class="lesson-body" id="l-body"></div>
+  </div>
+  <div class="editor-pane">
+    <div class="editor-bar"><div class="file-tab">🌐 Program.cs</div><div class="editor-controls"><kbd style="font-size:0.6rem;">Ctrl+⏎</kbd><button class="btn-reset" onclick="resetCode()">↺ Reset</button><button class="btn-run" onclick="runCheck()">▶ Build & Run</button></div></div>
+    <div class="editor-area"><div class="line-col" id="lines">1</div><textarea id="editor" spellcheck="false" onkeydown="tabHandle(event)" oninput="syncLines()"></textarea></div>
+    <div class="output-zone"><div class="output-bar"><div><div class="out-dot" id="o-dot"></div> Console</div><span style="opacity:0.4;">dotnet run</span></div><div id="console"><span class="c-dim">// Write ASP.NET Core code & test</span></div></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal"><div class="modal-card"><span class="modal-glyph" id="m-glyph">⚙️</span><div class="modal-heading" id="m-head">Ready!</div><div class="modal-sub" id="m-sub"></div><div class="xp-pill" id="m-xp">+0 XP</div><button class="modal-btn" onclick="advance()">Continue →</button></div></div>
+
+<script>
+// =============================== ASP.NET CORE CURRICULUM ===============================
+const curriculum = [
+  { id:'middleware', name:'Middlewares', icon:'🔄', topic:'REQUEST PIPELINE', steps:[
+    { title:'Understanding Use() & Run()', step:'STEP 1', xp:80,
+      question:`<div class="block"><div class="block-label concept-lbl">📘 Concept</div><div class="concept-text">In ASP.NET Core, the <strong>middleware pipeline</strong> processes requests. <code>app.Use()</code> adds a component that can pass to the next delegate. <code>app.Run()</code> is terminal.</div></div><div class="code-example"><div class="code-example-bar"><div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div><span class="code-file">Program.cs</span></div><pre><span class="kw">var</span> <span class="vr">builder</span> = WebApplication.<span class="fn">CreateBuilder</span>(args);
+<span class="kw">var</span> <span class="vr">app</span> = builder.<span class="fn">Build</span>();
+
+<span class="fn">app.Use</span>(<span class="kw">async</span> (context, next) => {
+    Console.<span class="fn">WriteLine</span>(<span class="str">"Before"</span>);
+    <span class="kw">await</span> <span class="fn">next</span>();
+    Console.<span class="fn">WriteLine</span>(<span class="str">"After"</span>);
+});
+
+<span class="fn">app.Run</span>(<span class="kw">async</span> context => {
+    <span class="kw">await</span> context.Response.<span class="fn">WriteAsync</span>(<span class="str">"Hello ASP.NET"</span>);
+});
+app.<span class="fn">Run</span>();</pre></div><div class="task-box"><div class="task-text">Write a simple middleware that prints <code>"Middleware active"</code> to console before calling next, and a terminal delegate that writes <code>"API response: OK"</code> to the response body. (Use WriteAsync).</div><button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button><div class="hint-box">app.Use(async (ctx, next) => { Console.WriteLine("Middleware active"); await next(); });\napp.Run(async ctx => { await ctx.Response.WriteAsync("API response: OK"); });</div></div>`,
+      starter:`var builder = WebApplication.CreateBuilder(args);\nvar app = builder.Build();\n\n// Add your middleware here\n\napp.Run();`,
+      check(c){ return /app\.Use/.test(c) && /Console\.WriteLine.*Middleware/.test(c) && /app\.Run/.test(c) && /WriteAsync.*API response/.test(c) ? {ok:true, out:"Middleware active\nAPI response: OK"} : {ok:false, msg:"Add app.Use middleware that logs and calls next(), then terminal app.Run with WriteAsync."}; }
+    },
+    { title:'MapGet & Routing', step:'STEP 2', xp:90,
+      question:`<div class="block"><div class="block-label concept-lbl">🌐 Routing</div><div class="concept-text"><code>app.MapGet()</code> defines an endpoint. Minimal APIs make building REST endpoints super clean.</div></div><div class="code-example"><pre><span class="fn">app.MapGet</span>(<span class="str">"/hello"</span>, () => <span class="str">"Hello World"</span>);
+<span class="fn">app.MapPost</span>(<span class="str">"/data"</span>, (Person p) => Results.<span class="fn">Ok</span>(p));</pre></div><div class="task-box"><div class="task-text">Create a GET endpoint at <code>"/ping"</code> that returns the string <code>"pong"</code>. Then create another endpoint <code>"/greet/{name}"</code> that returns <code>$"Hello {name}"</code>.</div><button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button><div class="hint-box">app.MapGet("/ping", () => "pong");\napp.MapGet("/greet/{name}", (string name) => $"Hello {name}");</div></div>`,
+      starter:`var builder = WebApplication.CreateBuilder(args);\nvar app = builder.Build();\n\n// Map endpoints\n\napp.Run();`,
+      check(c){ return /MapGet.*\/ping/.test(c) && /"pong"/.test(c) && /MapGet.*\/greet/.test(c) && /\$"Hello/.test(c) ? {ok:true, out:"pong"} : {ok:false, msg:"Define /ping and /greet/{name} endpoints."}; }
+    }
+  ]},
+  { id:'minimalapi', name:'Minimal APIs', icon:'⚡', topic:'BUILD FAST', steps:[
+    { title:'Dependency Injection', step:'STEP 1', xp:100,
+      question:`<div class="block"><div class="block-label">🧩 DI</div><div class="concept-text">ASP.NET Core has built-in DI. Register services with <code>builder.Services.AddSingleton/Scoped/Transient</code>.</div></div><div class="code-example"><pre>builder.Services.<span class="fn">AddSingleton</span><<span class="tp">IMyService</span>, MyService>();</pre></div><div class="task-box"><div class="task-text">Register a service <code>ITimeService</code> that returns current time string. Use <code>AddSingleton</code> and inject into a minimal API endpoint that returns the time.</div><button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button><div class="hint-box">interface ITimeService { string GetTime(); }\nclass TimeService : ITimeService { public string GetTime() => DateTime.Now.ToString(); }\nbuilder.Services.AddSingleton<ITimeService, TimeService>();\napp.MapGet("/time", (ITimeService svc) => svc.GetTime());</div></div>`,
+      starter:`var builder = WebApplication.CreateBuilder(args);\n// Register service\nvar app = builder.Build();\n// Map endpoint\napp.Run();`,
+      check(c){ return /AddSingleton/.test(c) && /interface ITimeService/.test(c) && /MapGet.*\/time/.test(c) && /ITimeService/.test(c) ? {ok:true, out:"Current time"} : {ok:false, msg:"Register ITimeService and inject into endpoint."}; }
+    }
+  ]},
+  { id:'mvc', name:'MVC Basics', icon:'🏗️', topic:'CONTROLLERS', steps:[
+    { title:'Controller & Action', step:'STEP 1', xp:110,
+      question:`<div class="block"><div class="block-label">🎮 MVC Pattern</div><div class="concept-text">Controllers handle requests. Use <code>[ApiController]</code> and <code>[Route]</code>. Actions return IActionResult.</div></div><div class="task-box"><div class="task-text">Create a controller <code>HealthController</code> with a GET action <code>Check()</code> that returns <code>Ok(new { status = "healthy" })</code>.</div><button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button><div class="hint-box">[ApiController][Route("health")]\npublic class HealthController : ControllerBase {\n    [HttpGet] public IActionResult Check() => Ok(new { status = "healthy" });\n}</div></div>`,
+      starter:`using Microsoft.AspNetCore.Mvc;\n\n// Define controller here\n\nvar builder = WebApplication.CreateBuilder(args);\nbuilder.Services.AddControllers();\nvar app = builder.Build();\napp.MapControllers();\napp.Run();`,
+      check(c){ return /class HealthController/.test(c) && /HttpGet/.test(c) && /Ok\(new { status/.test(c) ? {ok:true, out:"healthy"} : {ok:false, msg:"Create HealthController with Check() returning Ok."}; }
+    }
+  ]},
+  { id:'efcore', name:'Entity Framework', icon:'🗄️', topic:'DATABASE', steps:[
+    { title:'DbContext & Model', step:'STEP 1', xp:130,
+      question:`<div class="block"><div class="block-label">📦 EF Core</div><div class="concept-text">Define a model and <code>DbContext</code>. Use <code>AddDbContext</code> to register with SQLite or SQL Server.</div></div><div class="task-box"><div class="task-text">Define a <code>Product</code> class (Id, Name, Price). Create <code>AppDbContext : DbContext</code> with <code>DbSet<Product></code>. Register it using InMemory provider.</div><button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button><div class="hint-box">public class Product { public int Id { get; set; } public string Name { get; set; } public decimal Price { get; set; } }\npublic class AppDbContext : DbContext { public DbSet<Product> Products { get; set; } }\nbuilder.Services.AddDbContext<AppDbContext>(o => o.UseInMemoryDatabase("db"));</div></div>`,
+      starter:`using Microsoft.EntityFrameworkCore;\n\n// Product + DbContext\n\nvar builder = WebApplication.CreateBuilder(args);\nbuilder.Services.AddDbContext<AppDbContext>(options => options.UseInMemoryDatabase("store"));\nvar app = builder.Build();\napp.MapGet("/", () => "EF Ready");\napp.Run();`,
+      check(c){ return /class Product/.test(c) && /class AppDbContext/.test(c) && /DbSet<Product>/.test(c) && /UseInMemoryDatabase/.test(c) ? {ok:true, out:"EF Core configured"} : {ok:false, msg:"Define Product model, AppDbContext with DbSet<Product>, and register InMemory database."}; }
+    }
+  ]},
+  { id:'auth', name:'Auth & JWT', icon:'🔐', topic:'SECURITY', steps:[
+    { title:'JWT Bearer Setup', step:'STEP 1', xp:140,
+      question:`<div class="block"><div class="block-label">🛡️ JWT Auth</div><div class="concept-text">Use <code>AddAuthentication(JwtBearerDefaults.AuthenticationScheme)</code> and configure token validation.</div></div><div class="task-box"><div class="task-text">Add JWT authentication with issuer = "forge", audience = "api", and signing key = "mysupersecretkey123!@#". Use <code>AddJwtBearer</code>.</div><button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button><div class="hint-box">builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(opts => { opts.TokenValidationParameters = new TokenValidationParameters { ValidIssuer = "forge", ValidAudience = "api", IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("mysupersecretkey123!@#")) }; });</div></div>`,
+      starter:`using Microsoft.AspNetCore.Authentication.JwtBearer;\nusing Microsoft.IdentityModel.Tokens;\nusing System.Text;\n\nvar builder = WebApplication.CreateBuilder(args);\n// Add JWT authentication here\n\nvar app = builder.Build();\napp.UseAuthentication();\napp.UseAuthorization();\napp.MapGet("/secure", () => "protected").RequireAuthorization();\napp.Run();`,
+      check(c){ return /AddAuthentication.*JwtBearer/.test(c) && /ValidIssuer.*forge/.test(c) && /ValidAudience.*api/.test(c) && /SymmetricSecurityKey/.test(c) ? {ok:true, out:"JWT configured"} : {ok:false, msg:"Configure JWT Bearer with issuer, audience and signing key."}; }
+    }
+  ]}
+];
+
+// Game state
+let state = { ch:0, step:0, xp:0, streak:0, done: new Set(), chDone: new Set(), hinted:false };
+function boot(){ buildRail(); loadLesson(); refreshHud(); }
+function buildRail(){
+  const rail = document.getElementById('rail'); rail.innerHTML='';
+  curriculum.forEach((ch,i)=>{
+    const locked = !(i===0 || state.chDone.has(i-1) || state.ch===i);
+    const tab = document.createElement('div');
+    tab.className = `ch-tab ${i===state.ch?'active':''} ${state.chDone.has(i)?'done':''} ${locked?'locked':''}`;
+    tab.innerHTML = `<span>${ch.icon}</span>${ch.name}`;
+    if(!locked) tab.onclick = ()=>{ state.ch=i; state.step=0; buildRail(); loadLesson(); };
+    rail.appendChild(tab);
+  });
+}
+function loadLesson(){
+  const ch=curriculum[state.ch]; const step=ch.steps[state.step];
+  document.getElementById('hdr-chapter').innerText=ch.name;
+  document.getElementById('hdr-steps').innerText=`${state.step+1}/${ch.steps.length}`;
+  document.getElementById('b-step').innerText=step.step;
+  document.getElementById('b-topic').innerText=ch.topic;
+  document.getElementById('l-title').innerText=step.title;
+  document.getElementById('l-body').innerHTML=step.question;
+  document.getElementById('editor').value=step.starter;
+  document.getElementById('console').innerHTML='<span class="c-dim">// ready</span>';
+  document.getElementById('o-dot').className='out-dot';
+  let pct = (state.step/ch.steps.length)*100;
+  document.getElementById('prog-fill').style.width=pct+'%';
+  syncLines();
+}
+function refreshHud(){
+  document.getElementById('h-xp').innerText=state.xp;
+  document.getElementById('h-str').innerText=state.streak;
+  document.getElementById('h-lv').innerText=Math.floor(state.xp/300)+1;
+}
+function syncLines(){ const ta=document.getElementById('editor'); const lines=ta.value.split('\n').length; document.getElementById('lines').innerHTML=Array.from({length:lines},(_,i)=>i+1).join('\n'); }
+function tabHandle(e){ if(e.key==='Tab'){ e.preventDefault(); const t=e.target; const s=t.selectionStart; t.value=t.value.slice(0,s)+'    '+t.value.slice(t.selectionEnd); t.selectionStart=t.selectionEnd=s+4; syncLines();} if((e.ctrlKey||e.metaKey)&&e.key==='Enter') runCheck(); }
+function resetCode(){ document.getElementById('editor').value=curriculum[state.ch].steps[state.step].starter; document.getElementById('console').innerHTML='<span class="c-dim">Reset complete</span>'; document.getElementById('o-dot').className='out-dot'; syncLines(); }
+function toggleHint(btn){ const box=btn.nextElementSibling; box.classList.toggle('open'); btn.innerText=box.classList.contains('open')?'🙈 Hide':'💡 Hint'; state.hinted=true; }
+
+function runCheck(){
+  const code=document.getElementById('editor').value;
+  const step=curriculum[state.ch].steps[state.step];
+  const dot=document.getElementById('o-dot'); const con=document.getElementById('console');
+  dot.className='out-dot running'; con.innerHTML='<span class="c-info">compiling...</span>';
+  setTimeout(()=>{
+    let r=step.check(code);
+    if(r.ok){
+      dot.className='out-dot ok';
+      con.innerHTML=`<span class="c-ok">✓ Build passed\n${r.out||''}</span>`;
+      let key=`${state.ch}-${state.step}`;
+      if(!state.done.has(key)){
+        let earned = state.hinted ? Math.floor(step.xp*0.65) : step.xp;
+        state.xp+=earned; state.streak++; state.done.add(key); refreshHud();
+        showModal(true,earned);
+      } else showModal(true,0);
+      spawnSparks();
+    } else {
+      dot.className='out-dot err';
+      con.innerHTML=`<span class="c-err">✗ ${r.msg}</span>`;
+      state.streak=0; refreshHud();
+    }
+    state.hinted=false;
+  },400);
+}
+
+function showModal(success,earned){
+  const ch=curriculum[state.ch]; const isLastStep=(state.step===ch.steps.length-1);
+  document.getElementById('m-glyph').innerHTML=success?'🏆':'⚠️';
+  document.getElementById('m-head').innerHTML=isLastStep?`${ch.name} conquered!`:'Correct!';
+  document.getElementById('m-sub').innerHTML=isLastStep?'Next chapter unlocked! Keep forging.':success?'Great ASP.NET code!':'Try again.';
+  document.getElementById('m-xp').innerHTML=earned>0?`+${earned} XP`:'Already mastered';
+  document.getElementById('modal').classList.add('open');
+}
+
+function advance(){
+  document.getElementById('modal').classList.remove('open');
+  let ch=curriculum[state.ch];
+  if(state.step < ch.steps.length-1){ state.step++; }
+  else {
+    state.chDone.add(state.ch);
+    if(state.ch < curriculum.length-1){ state.ch++; state.step=0; }
+    buildRail();
+  }
+  loadLesson();
+}
+
+function spawnSparks(){
+  for(let i=0;i<24;i++){ let sp=document.createElement('div'); sp.className='spark'; let angle=(i/24)*Math.PI*2; let dist=70+Math.random()*100; sp.style.cssText=`left:${window.innerWidth/2}px;top:${window.innerHeight/2}px;background:#8A2BE2;--dx:${Math.cos(angle)*dist}px;--dy:${Math.sin(angle)*dist}px;`; document.body.appendChild(sp); setTimeout(()=>sp.remove(),800); }
+}
+document.addEventListener('keydown',e=>{ if((e.ctrlKey||e.metaKey)&&e.key==='Enter') runCheck(); });
+boot();
+</script>
+</body>
+</html>
