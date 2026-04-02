@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Flask Forge — Master Flask by Building</title>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&family=Syne:wght@400;600;700;800&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0c10;
+  --surface: #11151c;
+  --surface2: #181e28;
+  --border: #1f2a3a;
+  --border2: #2a3a50;
+  --flask-dark: #1a1a1a;
+  --flask-blue: #3498db;
+  --flask-green: #2ecc71;
+  --flask-orange: #e67e22;
+  --flask-red: #e74c3c;
+  --flask-yellow: #f1c40f;
+  --flask-teal: #1abc9c;
+  --success: #10b981;
+  --error: #ef4444;
+  --text: #e2e8f0;
+  --text2: #94a3b8;
+  --code-bg: #03050a;
+  --glow-flask: 0 0 20px rgba(52,152,219,0.4);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--bg);
+  font-family: 'Syne', sans-serif;
+  color: var(--text);
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at 70% 30%, rgba(52,152,219,0.06) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 28px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(10,12,16,0.96);
+  backdrop-filter: blur(14px);
+  z-index: 20;
+  flex-shrink: 0;
+  gap: 20px;
+}
+
+.logo-wrap { display: flex; align-items: center; gap: 12px; }
+.logo-icon {
+  width: 40px; height: 40px;
+  background: linear-gradient(135deg, var(--flask-blue), #1a5276);
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 1.2rem;
+  box-shadow: var(--glow-flask);
+}
+.logo-text { font-weight: 800; font-size: 1.2rem; letter-spacing: -0.02em; }
+.logo-text .flask { color: var(--flask-blue); }
+.logo-text .forge { color: var(--text); }
+.logo-sub { font-size: 0.55rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text2); }
+
+.prog-row { display: flex; justify-content: space-between; font-size: 0.6rem; font-weight: 600; text-transform: uppercase; color: var(--text2); margin-bottom: 4px; }
+.prog-track { height: 3px; background: var(--border); border-radius: 99px; overflow: hidden; }
+.prog-fill { height: 100%; background: linear-gradient(90deg, var(--flask-blue), var(--flask-teal)); transition: width 0.5s ease; }
+
+.hud { display: flex; gap: 10px; }
+.hud-chip {
+  font-family: 'Fira Code', monospace; font-size: 0.7rem;
+  padding: 4px 12px; border-radius: 8px; border: 1px solid var(--border2);
+  background: var(--surface); display: flex; align-items: center; gap: 6px;
+}
+.hud-chip.xp { border-color: rgba(52,152,219,0.5); color: var(--flask-blue); }
+.hud-chip.flame { border-color: rgba(230,126,34,0.4); color: var(--flask-orange); }
+.hud-chip.lvl { border-color: rgba(46,204,113,0.4); color: var(--flask-green); }
+
+.chapter-rail {
+  display: flex; padding: 0 28px; border-bottom: 1px solid var(--border);
+  background: rgba(10,12,16,0.9); flex-shrink: 0; overflow-x: auto; gap: 0;
+}
+.ch-tab {
+  padding: 8px 18px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+  color: var(--text2); cursor: pointer; border-bottom: 2px solid transparent;
+  transition: 0.2s; white-space: nowrap; display: flex; align-items: center; gap: 8px;
+}
+.ch-tab:hover { color: var(--text); }
+.ch-tab.active { color: var(--flask-teal); border-bottom-color: var(--flask-teal); }
+.ch-tab.done { color: var(--success); }
+.ch-tab.locked { opacity: 0.3; cursor: not-allowed; pointer-events: none; }
+
+.arena { display: flex; flex: 1; overflow: hidden; position: relative; z-index: 1; }
+
+.lesson-pane {
+  width: 42%; border-right: 1px solid var(--border);
+  background: var(--surface); display: flex; flex-direction: column;
+  overflow: hidden; flex-shrink: 0;
+}
+.lesson-head {
+  padding: 14px 20px; border-bottom: 1px solid var(--border);
+  background: var(--surface2); flex-shrink: 0;
+}
+.lesson-meta { display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+.badge-step { font-family: 'Fira Code', monospace; font-size: 0.55rem; padding: 2px 8px; border-radius: 4px; background: rgba(52,152,219,0.2); color: var(--flask-blue); border: 1px solid rgba(52,152,219,0.4); }
+.badge-topic { font-family: 'Fira Code', monospace; font-size: 0.55rem; padding: 2px 8px; border-radius: 4px; background: rgba(46,204,113,0.1); color: var(--flask-green); }
+.lesson-title { font-weight: 800; font-size: 1rem; letter-spacing: -0.02em; }
+.lesson-body { flex: 1; overflow-y: auto; padding: 20px; scrollbar-width: thin; }
+
+.block { margin-bottom: 20px; animation: fadeUp 0.35s ease both; }
+@keyframes fadeUp { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: translateY(0); } }
+.block-label { font-size: 0.6rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 8px; display: flex; gap: 6px; align-items: center; }
+.concept-text { font-size: 0.85rem; line-height: 1.7; color: #b9c7d9; }
+.concept-text code, .task-text code { font-family: 'Fira Code', monospace; background: var(--code-bg); color: var(--flask-yellow); padding: 1px 5px; border-radius: 4px; }
+.code-example { background: var(--code-bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin: 12px 0; }
+.code-example-bar { padding: 6px 12px; background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--border); display: flex; gap: 6px; align-items: center; }
+.dot-r { width: 8px; height: 8px; border-radius: 50%; background: #ff5f56; }
+.dot-y { background: #ffbd2e; }
+.dot-g { background: #27c93f; }
+.code-file { margin-left: auto; font-size: 0.6rem; font-family: monospace; color: var(--text2); }
+.code-example pre { padding: 12px 16px; font-family: 'Fira Code', monospace; font-size: 0.75rem; line-height: 1.6; overflow-x: auto; }
+.kw { color: #c792ea; } .fn { color: #82aaff; } .str { color: #c3e88d; } .num { color: #f78c6c; } .cmt { color: #546e7a; }
+
+.task-box { background: rgba(52,152,219,0.05); border: 1px solid rgba(52,152,219,0.2); border-radius: 12px; padding: 16px; }
+.task-text { font-size: 0.85rem; line-height: 1.65; }
+.hint-toggle { margin-top: 12px; background: none; border: 1px dashed var(--border2); color: var(--text2); font-family: monospace; font-size: 0.7rem; padding: 4px 12px; border-radius: 6px; cursor: pointer; }
+.hint-box { display: none; margin-top: 12px; background: rgba(241,196,15,0.05); border: 1px solid rgba(241,196,15,0.2); border-radius: 8px; padding: 10px; font-family: monospace; font-size: 0.72rem; color: var(--flask-yellow); white-space: pre-wrap; }
+.hint-box.open { display: block; }
+
+.editor-pane { flex: 1; display: flex; flex-direction: column; background: var(--code-bg); overflow: hidden; }
+.editor-bar { display: flex; justify-content: space-between; align-items: center; padding: 6px 16px; border-bottom: 1px solid var(--border); background: var(--surface); flex-shrink: 0; }
+.file-tab { font-family: 'Fira Code', monospace; font-size: 0.7rem; padding: 4px 14px; background: rgba(26,188,156,0.08); border: 1px solid rgba(26,188,156,0.3); border-radius: 6px; color: var(--flask-teal); }
+.editor-controls { display: flex; gap: 12px; align-items: center; }
+.btn-reset, .btn-run {
+  font-family: 'Syne', sans-serif; font-size: 0.7rem; font-weight: 700; padding: 6px 16px;
+  border-radius: 8px; cursor: pointer; transition: 0.2s; border: none;
+}
+.btn-reset { background: transparent; border: 1px solid var(--border2); color: var(--text2); }
+.btn-reset:hover { border-color: var(--flask-orange); color: var(--flask-orange); }
+.btn-run { background: linear-gradient(135deg, var(--flask-blue), #1a5276); color: white; box-shadow: 0 0 12px rgba(52,152,219,0.5); }
+.btn-run:hover { transform: translateY(-1px); filter: brightness(1.05); }
+.editor-area { display: flex; flex: 1; min-height: 0; }
+.line-col { padding: 14px 0; text-align: right; font-family: monospace; font-size: 0.75rem; color: #3e4a5f; background: #03050a; border-right: 1px solid var(--border); min-width: 48px; }
+#editor { flex: 1; background: transparent; border: none; outline: none; color: #e2e8f0; font-family: 'Fira Code', monospace; font-size: 0.78rem; line-height: 1.65; padding: 14px; resize: none; white-space: pre; overflow: auto; caret-color: var(--flask-teal); }
+.output-zone { height: 150px; border-top: 1px solid var(--border); background: #05070c; display: flex; flex-direction: column; flex-shrink: 0; }
+.output-bar { padding: 6px 16px; border-bottom: 1px solid var(--border); font-size: 0.6rem; font-weight: 700; text-transform: uppercase; display: flex; justify-content: space-between; }
+.out-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border2); transition: 0.2s; }
+.out-dot.running { background: var(--flask-yellow); animation: pulse 0.8s infinite; }
+.out-dot.ok { background: var(--success); box-shadow: 0 0 8px var(--success); }
+.out-dot.err { background: var(--error); }
+@keyframes pulse { 0%,100%{ opacity:0.5; } 50%{ opacity:1; } }
+#console { flex:1; padding: 8px 16px; font-family: monospace; font-size: 0.75rem; overflow-y: auto; white-space: pre-wrap; }
+
+.modal-bg {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(12px);
+  display: flex; align-items: center; justify-content: center; z-index: 200;
+  opacity: 0; pointer-events: none; transition: 0.25s;
+}
+.modal-bg.open { opacity: 1; pointer-events: all; }
+.modal-card {
+  background: var(--surface); border: 1px solid var(--flask-blue); border-radius: 28px;
+  padding: 36px; max-width: 400px; width: 90%; text-align: center;
+  transform: scale(0.9); transition: transform 0.35s cubic-bezier(0.2,1.2,0.8,1);
+}
+.modal-bg.open .modal-card { transform: scale(1); }
+.modal-glyph { font-size: 3rem; margin-bottom: 10px; }
+.modal-heading { font-family: 'DM Serif Display', serif; font-size: 1.8rem; margin-bottom: 8px; }
+.modal-sub { color: var(--text2); margin-bottom: 20px; }
+.xp-pill { background: rgba(52,152,219,0.2); border-radius: 40px; padding: 4px 16px; display: inline-block; margin-bottom: 24px; font-family: monospace; }
+.modal-btn { background: linear-gradient(135deg, var(--flask-blue), #1a5276); border: none; padding: 12px; border-radius: 40px; font-weight: bold; color: white; width: 100%; cursor: pointer; }
+
+.spark { position: fixed; width: 8px; height: 8px; border-radius: 50%; pointer-events: none; z-index: 999; animation: fly 0.8s ease-out forwards; background: var(--flask-teal); }
+@keyframes fly { 0% { transform: translate(0,0) scale(1); opacity:1; } 100% { transform: translate(var(--dx), var(--dy)) scale(0); opacity:0; } }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-wrap">
+    <div class="logo-icon">🍃</div>
+    <div><div class="logo-text"><span class="flask">Flask</span><span class="forge"> Forge</span></div><div class="logo-sub">Master Flask by Building</div></div>
+  </div>
+  <div class="header-mid">
+    <div class="prog-row"><span id="hdr-chapter">Flask Fundamentals</span><span id="hdr-steps">0/0</span></div>
+    <div class="prog-track"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+  </div>
+  <div class="hud"><div class="hud-chip xp">⚡ <span id="h-xp">0</span> XP</div><div class="hud-chip flame">🔥 <span id="h-str">0</span></div><div class="hud-chip lvl">Lv <span id="h-lv">1</span></div></div>
+</header>
+
+<nav class="chapter-rail" id="rail"></nav>
+
+<div class="arena">
+  <div class="lesson-pane">
+    <div class="lesson-head"><div class="lesson-meta"><span class="badge-step" id="b-step">STEP 1</span><span class="badge-topic" id="b-topic">FLASK CORE</span></div><div class="lesson-title" id="l-title">Your First Flask App</div></div>
+    <div class="lesson-body" id="l-body"></div>
+  </div>
+  <div class="editor-pane">
+    <div class="editor-bar"><div class="file-tab">🍃 app.py</div><div class="editor-controls"><kbd style="font-size:0.6rem;">Ctrl+⏎</kbd><button class="btn-reset" onclick="resetCode()">↺ Reset</button><button class="btn-run" onclick="runCheck()">▶ Run Flask & Check</button></div></div>
+    <div class="editor-area"><div class="line-col" id="lines">1</div><textarea id="editor" spellcheck="false" onkeydown="tabHandle(event)" oninput="syncLines()"></textarea></div>
+    <div class="output-zone"><div class="output-bar"><div><div class="out-dot" id="o-dot"></div> Flask Output</div><span style="opacity:0.4;">flask run</span></div><div id="console"><span class="c-dim"># Write Flask routes & press Run</span></div></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal"><div class="modal-card"><span class="modal-glyph" id="m-glyph">🍃</span><div class="modal-heading" id="m-head">Passed!</div><div class="modal-sub" id="m-sub"></div><div class="xp-pill" id="m-xp">+0 XP</div><button class="modal-btn" onclick="advance()">Next →</button></div></div>
+
+<script>
+// =============================== COMPLETE FLASK CURRICULUM (Full-Stack Web Dev) ===============================
+const curriculum = [
+  { id:'intro', name:'Flask 101', icon:'🍃', topic:'FUNDAMENTALS', steps:[
+    { title:'Hello Flask & Routes', step:'STEP 1', xp:70,
+      question:`<div class="block"><div class="block-label">🌱 First App</div><div class="concept-text">Flask is a micro web framework. <code>@app.route('/')</code> decorator maps URL to function.</div></div><div class="code-example"><pre><span class="kw">from flask import Flask</span>
+<span class="kw">app = Flask(__name__)</span>
+
+<span class="kw">@app.route('/')</span>
+<span class="kw">def home():</span>
+    <span class="kw">return "Hello Flask!"</span>
+
+<span class="kw">if __name__ == '__main__':</span>
+    app.run(debug=True)</pre></div><div class="task-box"><div class="task-text">Create a Flask app with two routes: <code>/</code> returns <code>"Homepage"</code> and <code>/about</code> returns <code>"About Us"</code>. Don't forget to import Flask.</div><button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button><div class="hint-box">from flask import Flask\napp = Flask(__name__)\n@app.route('/')\ndef home(): return "Homepage"\n@app.route('/about')\ndef about(): return "About Us"</div></div>`,
+      starter:`from flask import Flask\n\n# Create app and routes\n\n`,
+      check(c){ return /from flask import Flask/.test(c) && /app\s*=\s*Flask\(__name__\)/.test(c) && /@app\.route\(['"]\/['"]\)/.test(c) && /return\s+["']Homepage["']/.test(c) && /@app\.route\(['"]\/about['"]\)/.test(c) && /return\s+["']About Us["']/.test(c) ? {ok:true, out:"Routes defined: / → Homepage, /about → About Us"} : {ok:false, msg:"Create Flask app with routes / and /about returning proper strings."}; }
+    },
+    { title:'Dynamic Routes & Variables', step:'STEP 2', xp:80,
+      question:`<div class="block"><div class="block-label">🔗 Dynamic URLs</div><div class="concept-text">Use <code>&lt;variable&gt;</code> in route. Pass to function.</div></div><div class="task-box"><div class="task-text">Create route <code>/user/&lt;name&gt;</code> that returns <code>"Hello, {name}!"</code>. Also create <code>/double/&lt;int:num&gt;</code> that returns <code>f"Double: {num*2}"</code>.</div><button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button><div class="hint-box">@app.route('/user/<name>')\ndef user(name): return f"Hello, {name}!"\n@app.route('/double/<int:num>')\ndef double(num): return f"Double: {num*2}"</div></div>`,
+      starter:`from flask import Flask\napp = Flask(__name__)\n\n# dynamic routes here\n\n`,
+      check(c){ return /@app\.route\(['"]\/user\/<name>['"]\)/.test(c) && /f["']Hello, \{name\}["']/.test(c) && /@app\.route\(['"]\/double\/<int:num>['"]\)/.test(c) && /num\*2/.test(c) ? {ok:true, out:"Dynamic routes ready"} : {ok:false, msg:"Create /user/<name> and /double/<int:num> routes."}; }
+    }
+  ]},
+  { id:'templates', name:'Templates', icon:'🎨', topic:'JINJA2', steps:[
+    { title:'Rendering Templates', step:'STEP 1', xp:85,
+      question:`<div class="block"><div class="block-label">📄 Jinja2</div><div class="concept-text"><code>render_template()</code> renders HTML files. Pass variables using <code>{{ var }}</code>.</div></div><div class="task-box"><div class="task-text">Create route <code>/welcome/&lt;name&gt;</code> that renders template <code>welcome.html</code> with variable <code>username</code>. Assume template exists — just show the render call and variable passing.</div><button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button><div class="hint-box">from flask import render_template\n@app.route('/welcome/<name>')\ndef welcome(name): return render_template('welcome.html', username=name)</div></div>`,
+      starter:`from flask import Flask, render_template\napp = Flask(__name__)\n\n# route with render_template\n`,
+      check(c){ return /render_template\(['"]welcome\.html['"],\s*username\s*=\s*\w+\)/.test(c) && /@app\.route\(['"]\/welcome\/<name>['"]\)/.test(c) ? {ok:true, out:"render_template configured"} : {ok:false, msg:"Use render_template with welcome.html and pass username."}; }
+    }
+  ]},
+  { id:'forms', name:'Forms & Requests', icon:'📝', topic:'REQUEST HANDLING', steps:[
+    { title:'GET & POST Methods', step:'STEP 1', xp:95,
+      question:`<div class="block"><div class="block-label">📨 Request Methods</div><div class="concept-text">Use <code>methods=['GET','POST']</code>. Access form data with <code>request.form</code>.</div></div><div class="task-box"><div class="task-text">Create route <code>/login</code> that accepts POST. On POST, get <code>username</code> from form and return <code>f"Welcome {username}"</code>. For GET return "Login page".</div><button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button><div class="hint-box">from flask import request\n@app.route('/login', methods=['GET','POST'])\ndef login():\n    if request.method == 'POST':\n        name = request.form['username']\n        return f"Welcome {name}"\n    return "Login page"</div></div>`,
+      starter:`from flask import Flask, request\napp = Flask(__name__)\n\n# login route with POST handling\n`,
+      check(c){ return /methods=\[['"]GET['"],\s*['"]POST['"]\]/.test(c) && /request\.form\['username'\]/.test(c) && /Welcome/.test(c) ? {ok:true, out:"POST handler ready"} : {ok:false, msg:"Create /login route with GET/POST, access request.form."}; }
+    }
+  ]},
+  { id:'database', name:'Flask-SQLAlchemy', icon:'🗄️', topic:'DATABASES', steps:[
+    { title:'Models & SQLAlchemy', step:'STEP 1', xp:110,
+      question:`<div class="block"><div class="block-label">📦 SQLAlchemy</div><div class="concept-text">Define models as classes. <code>db.Model</code>, <code>db.Column</code>. Use SQLite.</div></div><div class="task-box"><div class="task-text">Define a <code>User</code> model with <code>id</code> (Integer primary_key), <code>username</code> (String unique), <code>email</code> (String). Configure SQLite URI <code>sqlite:///users.db</code>.</div><button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button><div class="hint-box">from flask_sqlalchemy import SQLAlchemy\napp.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'\ndb = SQLAlchemy(app)\nclass User(db.Model):\n    id = db.Column(db.Integer, primary_key=True)\n    username = db.Column(db.String(80), unique=True)\n    email = db.Column(db.String(120))</div></div>`,
+      starter:`from flask import Flask\nfrom flask_sqlalchemy import SQLAlchemy\napp = Flask(__name__)\n# config and User model\n`,
+      check(c){ return /SQLALCHEMY_DATABASE_URI.*sqlite:\/\/\/users\.db/.test(c) && /class\s+User\(db\.Model\)/.test(c) && /db\.Column\(db\.Integer,\s*primary_key=True\)/.test(c) && /username.*String.*unique/.test(c) ? {ok:true, out:"User model defined"} : {ok:false, msg:"Configure SQLite URI and create User model with id, username, email."}; }
+    }
+  ]},
+  { id:'blueprints', name:'Blueprints', icon:'📐', topic:'MODULAR APPS', steps:[
+    { title:'Organizing with Blueprints', step:'STEP 1', xp:105,
+      question:`<div class="block"><div class="block-label">🧩 Blueprints</div><div class="concept-text">Blueprints help organize routes into modules. Register blueprint with app.</div></div><div class="task-box"><div class="task-text">Create a blueprint <code>auth_bp</code> with route <code>/login</code> returning <code>"Auth Login"</code>. Register it with prefix <code>/auth</code>.</div><button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button><div class="hint-box">from flask import Blueprint\nauth_bp = Blueprint('auth', __name__, url_prefix='/auth')\n@auth_bp.route('/login')\ndef login(): return "Auth Login"\napp.register_blueprint(auth_bp)</div></div>`,
+      starter:`from flask import Flask, Blueprint\napp = Flask(__name__)\n# blueprint definition and registration\n`,
+      check(c){ return /Blueprint\(['"]auth['"]/.test(c) && /url_prefix=['"]\/auth['"]/.test(c) && /@auth_bp\.route\(['"]\/login['"]\)/.test(c) && /register_blueprint\(auth_bp\)/.test(c) ? {ok:true, out:"Blueprint registered"} : {ok:false, msg:"Create auth_bp blueprint, add /login route, register with /auth prefix."}; }
+    }
+  ]},
+  { id:'restapi', name:'REST APIs', icon:'🔌', topic:'API DEVELOPMENT', steps:[
+    { title:'JSON Responses', step:'STEP 1', xp:100,
+      question:`<div class="block"><div class="block-label">📡 REST API</div><div class="concept-text">Use <code>jsonify()</code> to return JSON responses.</div></div><div class="task-box"><div class="task-text">Create endpoint <code>/api/user</code> that returns JSON: <code>{"name": "Flask", "version": "2.3"}</code>. Use <code>jsonify</code>.</div><button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button><div class="hint-box">from flask import jsonify\n@app.route('/api/user')\ndef api_user(): return jsonify(name="Flask", version="2.3")</div></div>`,
+      starter:`from flask import Flask, jsonify\napp = Flask(__name__)\n# JSON endpoint\n`,
+      check(c){ return /jsonify\(name=["']Flask["'],\s*version=["']2\.3["']\)/.test(c) && /@app\.route\(['"]\/api\/user['"]\)/.test(c) ? {ok:true, out:'{"name":"Flask","version":"2.3"}'} : {ok:false, msg:"Create /api/user endpoint returning jsonify with name and version."}; }
+    }
+  ]},
+  { id:'sessions', name:'Sessions & Cookies', icon:'🍪', topic:'STATE', steps:[
+    { title:'User Sessions', step:'STEP 1', xp:95,
+      question:`<div class="block"><div class="block-label">🔐 Sessions</div><div class="concept-text"><code>session</code> object stores user data. Set <code>secret_key</code>.</div></div><div class="task-box"><div class="task-text">Set <code>app.secret_key = 'supersecret'</code>. Create route <code>/setsession</code> that stores <code>session['user'] = 'admin'</code> and returns "Session set". Create <code>/getsession</code> returning <code>session.get('user', 'Guest')</code>.</div><button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button><div class="hint-box">app.secret_key = 'supersecret'\nfrom flask import session\n@app.route('/setsession')\ndef set(): session['user']='admin'; return "Session set"\n@app.route('/getsession')\ndef get(): return session.get('user','Guest')</div></div>`,
+      starter:`from flask import Flask, session\napp = Flask(__name__)\napp.secret_key = 'supersecret'\n# session routes\n`,
+      check(c){ return /app\.secret_key/.test(c) && /session\[['"]user['"]\]\s*=\s*['"]admin['"]/.test(c) && /session\.get\(['"]user['"],\s*['"]Guest['"]\)/.test(c) ? {ok:true, out:"Session routes ready"} : {ok:false, msg:"Set secret_key, create /setsession and /getsession using session."}; }
+    }
+  ]},
+  { id:'deployment', name:'Deployment', icon:'🚀', topic:'PRODUCTION', steps:[
+    { title:'WSGI & Gunicorn', step:'STEP 1', xp:120,
+      question:`<div class="block"><div class="block-label">🌍 Production</div><div class="concept-text">Use Gunicorn as WSGI server. Create <code>wsgi.py</code> entry point.</div></div><div class="task-box"><div class="task-text">Write a <code>wsgi.py</code> file that imports <code>app</code> from <code>app</code> module and runs with gunicorn. Also show the command to run: <code>gunicorn wsgi:app</code>.</div><button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button><div class="hint-box"># wsgi.py\nfrom app import app\nif __name__ == "__main__":\n    app.run()\n# gunicorn command: gunicorn wsgi:app</div></div>`,
+      starter:`# wsgi.py - production entry point\n`,
+      check(c){ return /from app import app/.test(c) && /gunicorn wsgi:app/.test(c) ? {ok:true, out:"Deployment ready"} : {ok:false, msg:"Create wsgi.py importing app, show gunicorn command."}; }
+    }
+  ]}
+];
+
+// STATE
+let state = { ch:0, step:0, xp:0, streak:0, done: new Set(), chDone: new Set(), hinted:false };
+function boot(){ buildRail(); loadLesson(); refreshHud(); }
+function buildRail(){
+  const rail = document.getElementById('rail'); rail.innerHTML='';
+  curriculum.forEach((ch,i)=>{
+    let locked = !(i===0 || state.chDone.has(i-1) || state.ch===i);
+    let tab = document.createElement('div');
+    tab.className = `ch-tab ${i===state.ch?'active':''} ${state.chDone.has(i)?'done':''} ${locked?'locked':''}`;
+    tab.innerHTML = `<span>${ch.icon}</span>${ch.name}`;
+    if(!locked) tab.onclick = ()=>{ state.ch=i; state.step=0; buildRail(); loadLesson(); };
+    rail.appendChild(tab);
+  });
+}
+function loadLesson(){
+  let ch = curriculum[state.ch]; let step = ch.steps[state.step];
+  document.getElementById('hdr-chapter').innerText = ch.name;
+  document.getElementById('hdr-steps').innerText = `${state.step+1}/${ch.steps.length}`;
+  document.getElementById('b-step').innerText = step.step;
+  document.getElementById('b-topic').innerText = ch.topic;
+  document.getElementById('l-title').innerText = step.title;
+  document.getElementById('l-body').innerHTML = step.question;
+  document.getElementById('editor').value = step.starter;
+  document.getElementById('console').innerHTML = '<span class="c-dim"># ready</span>';
+  document.getElementById('o-dot').className = 'out-dot';
+  let pct = (state.step/ch.steps.length)*100;
+  document.getElementById('prog-fill').style.width = pct+'%';
+  syncLines();
+}
+function refreshHud(){
+  document.getElementById('h-xp').innerText = state.xp;
+  document.getElementById('h-str').innerText = state.streak;
+  document.getElementById('h-lv').innerText = Math.floor(state.xp/300)+1;
+}
+function syncLines(){ let ta=document.getElementById('editor'); let lines=ta.value.split('\n').length; document.getElementById('lines').innerHTML=Array.from({length:lines},(_,i)=>i+1).join('\n'); }
+function tabHandle(e){ if(e.key==='Tab'){ e.preventDefault(); let t=e.target; let s=t.selectionStart; t.value=t.value.slice(0,s)+'    '+t.value.slice(t.selectionEnd); t.selectionStart=t.selectionEnd=s+4; syncLines();} if((e.ctrlKey||e.metaKey)&&e.key==='Enter') runCheck(); }
+function resetCode(){ document.getElementById('editor').value=curriculum[state.ch].steps[state.step].starter; document.getElementById('console').innerHTML='<span class="c-dim"># reset</span>'; document.getElementById('o-dot').className='out-dot'; syncLines(); }
+function toggleHint(btn){ let box=btn.nextElementSibling; box.classList.toggle('open'); btn.innerText=box.classList.contains('open')?'🙈 Hide':'💡 Hint'; state.hinted=true; }
+
+function runCheck(){
+  let code = document.getElementById('editor').value;
+  let step = curriculum[state.ch].steps[state.step];
+  let dot = document.getElementById('o-dot'); let con = document.getElementById('console');
+  dot.className='out-dot running'; con.innerHTML='<span class="c-info">running flask check...</span>';
+  setTimeout(()=>{
+    let r = step.check(code);
+    if(r.ok){
+      dot.className='out-dot ok';
+      con.innerHTML = `<span class="c-ok">✓ Flask app valid!\n${r.out||''}</span>`;
+      let key = `${state.ch}-${state.step}`;
+      if(!state.done.has(key)){
+        let earned = state.hinted ? Math.floor(step.xp*0.65) : step.xp;
+        state.xp += earned; state.streak++; state.done.add(key); refreshHud();
+        showModal(true, earned);
+      } else showModal(true,0);
+      spawnSparks();
+    } else {
+      dot.className='out-dot err';
+      con.innerHTML = `<span class="c-err">✗ ${r.msg}</span>`;
+      state.streak = 0; refreshHud();
+    }
+    state.hinted = false;
+  }, 400);
+}
+
+function showModal(ok, earned){
+  let ch = curriculum[state.ch]; let isLastStep = (state.step === ch.steps.length-1);
+  document.getElementById('m-glyph').innerHTML = ok?'🍃✨':'⚠️';
+  document.getElementById('m-head').innerHTML = isLastStep?`${ch.name} Mastered!`:'Correct!';
+  document.getElementById('m-sub').innerHTML = isLastStep?'Next chapter unlocked. Build faster with Flask!' : 'Great Flask implementation!';
+  document.getElementById('m-xp').innerHTML = earned>0?`+${earned} XP`:'Already earned';
+  document.getElementById('modal').classList.add('open');
+}
+function advance(){
+  document.getElementById('modal').classList.remove('open');
+  let ch = curriculum[state.ch];
+  if(state.step < ch.steps.length-1){ state.step++; }
+  else {
+    state.chDone.add(state.ch);
+    if(state.ch < curriculum.length-1){ state.ch++; state.step=0; }
+    buildRail();
+  }
+  loadLesson();
+}
+function spawnSparks(){
+  for(let i=0;i<28;i++){ let sp=document.createElement('div'); sp.className='spark'; let ang=(i/28)*Math.PI*2; let dist=60+Math.random()*120; sp.style.cssText=`left:${window.innerWidth/2}px;top:${window.innerHeight/2}px;--dx:${Math.cos(ang)*dist}px;--dy:${Math.sin(ang)*dist}px;`; document.body.appendChild(sp); setTimeout(()=>sp.remove(),900); }
+}
+document.addEventListener('keydown',e=>{ if((e.ctrlKey||e.metaKey)&&e.key==='Enter') runCheck(); });
+boot();
+</script>
+</body>
+</html>

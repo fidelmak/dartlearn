@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Odoo Forge — Master Odoo Development</title>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&family=Syne:wght@400;600;700;800&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0c10;
+  --surface: #11151c;
+  --surface2: #181e28;
+  --border: #1f2a3a;
+  --border2: #2a3a50;
+  --odoo-purple: #714B67;
+  --odoo-violet: #8c5a7e;
+  --odoo-green: #21B57A;
+  --odoo-blue: #3C7B9D;
+  --odoo-orange: #F29B45;
+  --odoo-red: #E65C4F;
+  --odoo-gold: #F2C94C;
+  --success: #10b981;
+  --error: #ef4444;
+  --text: #e2e8f0;
+  --text2: #94a3b8;
+  --code-bg: #03050a;
+  --glow-odoo: 0 0 20px rgba(113,75,103,0.5);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--bg);
+  font-family: 'Syne', sans-serif;
+  color: var(--text);
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at 20% 70%, rgba(113,75,103,0.08) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 28px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(10,12,16,0.96);
+  backdrop-filter: blur(14px);
+  z-index: 20;
+  flex-shrink: 0;
+  gap: 20px;
+}
+
+.logo-wrap { display: flex; align-items: center; gap: 12px; }
+.logo-icon {
+  width: 40px; height: 40px;
+  background: linear-gradient(135deg, var(--odoo-purple), var(--odoo-violet));
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 1.1rem;
+  box-shadow: var(--glow-odoo);
+}
+.logo-text { font-weight: 800; font-size: 1.2rem; letter-spacing: -0.02em; }
+.logo-text .odoo { color: var(--odoo-green); }
+.logo-text .forge { color: var(--text); }
+.logo-sub { font-size: 0.55rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text2); }
+
+.prog-row { display: flex; justify-content: space-between; font-size: 0.6rem; font-weight: 600; text-transform: uppercase; color: var(--text2); margin-bottom: 4px; }
+.prog-track { height: 3px; background: var(--border); border-radius: 99px; overflow: hidden; }
+.prog-fill { height: 100%; background: linear-gradient(90deg, var(--odoo-purple), var(--odoo-green)); transition: width 0.5s ease; }
+
+.hud { display: flex; gap: 10px; }
+.hud-chip {
+  font-family: 'Fira Code', monospace; font-size: 0.7rem;
+  padding: 4px 12px; border-radius: 8px; border: 1px solid var(--border2);
+  background: var(--surface); display: flex; align-items: center; gap: 6px;
+}
+.hud-chip.xp { border-color: rgba(113,75,103,0.5); color: var(--odoo-purple); }
+.hud-chip.flame { border-color: rgba(242,155,69,0.4); color: var(--odoo-orange); }
+.hud-chip.lvl { border-color: rgba(33,181,122,0.4); color: var(--odoo-green); }
+
+.chapter-rail {
+  display: flex; padding: 0 28px; border-bottom: 1px solid var(--border);
+  background: rgba(10,12,16,0.9); flex-shrink: 0; overflow-x: auto; gap: 0;
+}
+.ch-tab {
+  padding: 8px 18px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+  color: var(--text2); cursor: pointer; border-bottom: 2px solid transparent;
+  transition: 0.2s; white-space: nowrap; display: flex; align-items: center; gap: 8px;
+}
+.ch-tab:hover { color: var(--text); }
+.ch-tab.active { color: var(--odoo-green); border-bottom-color: var(--odoo-green); }
+.ch-tab.done { color: var(--success); }
+.ch-tab.locked { opacity: 0.3; cursor: not-allowed; pointer-events: none; }
+
+.arena { display: flex; flex: 1; overflow: hidden; position: relative; z-index: 1; }
+
+.lesson-pane {
+  width: 42%; border-right: 1px solid var(--border);
+  background: var(--surface); display: flex; flex-direction: column;
+  overflow: hidden; flex-shrink: 0;
+}
+.lesson-head {
+  padding: 14px 20px; border-bottom: 1px solid var(--border);
+  background: var(--surface2); flex-shrink: 0;
+}
+.lesson-meta { display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+.badge-step { font-family: 'Fira Code', monospace; font-size: 0.55rem; padding: 2px 8px; border-radius: 4px; background: rgba(113,75,103,0.2); color: var(--odoo-purple); border: 1px solid rgba(113,75,103,0.4); }
+.badge-topic { font-family: 'Fira Code', monospace; font-size: 0.55rem; padding: 2px 8px; border-radius: 4px; background: rgba(33,181,122,0.1); color: var(--odoo-green); }
+.lesson-title { font-weight: 800; font-size: 1rem; letter-spacing: -0.02em; }
+.lesson-body { flex: 1; overflow-y: auto; padding: 20px; scrollbar-width: thin; }
+
+.block { margin-bottom: 20px; animation: fadeUp 0.35s ease both; }
+@keyframes fadeUp { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: translateY(0); } }
+.block-label { font-size: 0.6rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 8px; display: flex; gap: 6px; align-items: center; }
+.concept-text { font-size: 0.85rem; line-height: 1.7; color: #b9c7d9; }
+.concept-text code, .task-text code { font-family: 'Fira Code', monospace; background: var(--code-bg); color: var(--odoo-gold); padding: 1px 5px; border-radius: 4px; }
+.code-example { background: var(--code-bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin: 12px 0; }
+.code-example-bar { padding: 6px 12px; background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--border); display: flex; gap: 6px; align-items: center; }
+.dot-r { width: 8px; height: 8px; border-radius: 50%; background: #ff5f56; }
+.dot-y { background: #ffbd2e; }
+.dot-g { background: #27c93f; }
+.code-file { margin-left: auto; font-size: 0.6rem; font-family: monospace; color: var(--text2); }
+.code-example pre { padding: 12px 16px; font-family: 'Fira Code', monospace; font-size: 0.75rem; line-height: 1.6; overflow-x: auto; }
+.kw { color: #c792ea; } .fn { color: #82aaff; } .str { color: #c3e88d; } .num { color: #f78c6c; } .cmt { color: #546e7a; }
+
+.task-box { background: rgba(113,75,103,0.05); border: 1px solid rgba(113,75,103,0.2); border-radius: 12px; padding: 16px; }
+.task-text { font-size: 0.85rem; line-height: 1.65; }
+.hint-toggle { margin-top: 12px; background: none; border: 1px dashed var(--border2); color: var(--text2); font-family: monospace; font-size: 0.7rem; padding: 4px 12px; border-radius: 6px; cursor: pointer; }
+.hint-box { display: none; margin-top: 12px; background: rgba(242,201,76,0.05); border: 1px solid rgba(242,201,76,0.2); border-radius: 8px; padding: 10px; font-family: monospace; font-size: 0.72rem; color: var(--odoo-gold); white-space: pre-wrap; }
+.hint-box.open { display: block; }
+
+.editor-pane { flex: 1; display: flex; flex-direction: column; background: var(--code-bg); overflow: hidden; }
+.editor-bar { display: flex; justify-content: space-between; align-items: center; padding: 6px 16px; border-bottom: 1px solid var(--border); background: var(--surface); flex-shrink: 0; }
+.file-tab { font-family: 'Fira Code', monospace; font-size: 0.7rem; padding: 4px 14px; background: rgba(33,181,122,0.08); border: 1px solid rgba(33,181,122,0.3); border-radius: 6px; color: var(--odoo-green); }
+.editor-controls { display: flex; gap: 12px; align-items: center; }
+.btn-reset, .btn-run {
+  font-family: 'Syne', sans-serif; font-size: 0.7rem; font-weight: 700; padding: 6px 16px;
+  border-radius: 8px; cursor: pointer; transition: 0.2s; border: none;
+}
+.btn-reset { background: transparent; border: 1px solid var(--border2); color: var(--text2); }
+.btn-reset:hover { border-color: var(--odoo-orange); color: var(--odoo-orange); }
+.btn-run { background: linear-gradient(135deg, var(--odoo-purple), var(--odoo-violet)); color: white; box-shadow: 0 0 12px rgba(113,75,103,0.5); }
+.btn-run:hover { transform: translateY(-1px); filter: brightness(1.05); }
+.editor-area { display: flex; flex: 1; min-height: 0; }
+.line-col { padding: 14px 0; text-align: right; font-family: monospace; font-size: 0.75rem; color: #3e4a5f; background: #03050a; border-right: 1px solid var(--border); min-width: 48px; }
+#editor { flex: 1; background: transparent; border: none; outline: none; color: #e2e8f0; font-family: 'Fira Code', monospace; font-size: 0.78rem; line-height: 1.65; padding: 14px; resize: none; white-space: pre; overflow: auto; caret-color: var(--odoo-green); }
+.output-zone { height: 150px; border-top: 1px solid var(--border); background: #05070c; display: flex; flex-direction: column; flex-shrink: 0; }
+.output-bar { padding: 6px 16px; border-bottom: 1px solid var(--border); font-size: 0.6rem; font-weight: 700; text-transform: uppercase; display: flex; justify-content: space-between; }
+.out-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border2); transition: 0.2s; }
+.out-dot.running { background: var(--odoo-gold); animation: pulse 0.8s infinite; }
+.out-dot.ok { background: var(--success); box-shadow: 0 0 8px var(--success); }
+.out-dot.err { background: var(--error); }
+@keyframes pulse { 0%,100%{ opacity:0.5; } 50%{ opacity:1; } }
+#console { flex:1; padding: 8px 16px; font-family: monospace; font-size: 0.75rem; overflow-y: auto; white-space: pre-wrap; }
+
+.modal-bg {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(12px);
+  display: flex; align-items: center; justify-content: center; z-index: 200;
+  opacity: 0; pointer-events: none; transition: 0.25s;
+}
+.modal-bg.open { opacity: 1; pointer-events: all; }
+.modal-card {
+  background: var(--surface); border: 1px solid var(--odoo-purple); border-radius: 28px;
+  padding: 36px; max-width: 400px; width: 90%; text-align: center;
+  transform: scale(0.9); transition: transform 0.35s cubic-bezier(0.2,1.2,0.8,1);
+}
+.modal-bg.open .modal-card { transform: scale(1); }
+.modal-glyph { font-size: 3rem; margin-bottom: 10px; }
+.modal-heading { font-family: 'DM Serif Display', serif; font-size: 1.8rem; margin-bottom: 8px; }
+.modal-sub { color: var(--text2); margin-bottom: 20px; }
+.xp-pill { background: rgba(113,75,103,0.2); border-radius: 40px; padding: 4px 16px; display: inline-block; margin-bottom: 24px; font-family: monospace; }
+.modal-btn { background: linear-gradient(135deg, var(--odoo-purple), var(--odoo-violet)); border: none; padding: 12px; border-radius: 40px; font-weight: bold; color: white; width: 100%; cursor: pointer; }
+
+.spark { position: fixed; width: 8px; height: 8px; border-radius: 50%; pointer-events: none; z-index: 999; animation: fly 0.8s ease-out forwards; background: var(--odoo-green); }
+@keyframes fly { 0% { transform: translate(0,0) scale(1); opacity:1; } 100% { transform: translate(var(--dx), var(--dy)) scale(0); opacity:0; } }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-wrap">
+    <div class="logo-icon">⚙️</div>
+    <div><div class="logo-text"><span class="odoo">Odoo</span><span class="forge"> Forge</span></div><div class="logo-sub">Master Odoo Development</div></div>
+  </div>
+  <div class="header-mid">
+    <div class="prog-row"><span id="hdr-chapter">Odoo Models</span><span id="hdr-steps">0/0</span></div>
+    <div class="prog-track"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+  </div>
+  <div class="hud"><div class="hud-chip xp">⚡ <span id="h-xp">0</span> XP</div><div class="hud-chip flame">🔥 <span id="h-str">0</span></div><div class="hud-chip lvl">Lv <span id="h-lv">1</span></div></div>
+</header>
+
+<nav class="chapter-rail" id="rail"></nav>
+
+<div class="arena">
+  <div class="lesson-pane">
+    <div class="lesson-head"><div class="lesson-meta"><span class="badge-step" id="b-step">STEP 1</span><span class="badge-topic" id="b-topic">MODELS</span></div><div class="lesson-title" id="l-title">Odoo Models & Fields</div></div>
+    <div class="lesson-body" id="l-body"></div>
+  </div>
+  <div class="editor-pane">
+    <div class="editor-bar"><div class="file-tab">📁 models/library_book.py</div><div class="editor-controls"><kbd style="font-size:0.6rem;">Ctrl+⏎</kbd><button class="btn-reset" onclick="resetCode()">↺ Reset</button><button class="btn-run" onclick="runCheck()">▶ Validate Odoo Code</button></div></div>
+    <div class="editor-area"><div class="line-col" id="lines">1</div><textarea id="editor" spellcheck="false" onkeydown="tabHandle(event)" oninput="syncLines()"></textarea></div>
+    <div class="output-zone"><div class="output-bar"><div><div class="out-dot" id="o-dot"></div> Odoo Validation</div><span style="opacity:0.4;">odoo-bin scaffold</span></div><div id="console"><span class="c-dim"># Write Odoo model code & check</span></div></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal"><div class="modal-card"><span class="modal-glyph" id="m-glyph">⚙️</span><div class="modal-heading" id="m-head">Passed!</div><div class="modal-sub" id="m-sub"></div><div class="xp-pill" id="m-xp">+0 XP</div><button class="modal-btn" onclick="advance()">Next →</button></div></div>
+
+<script>
+// =============================== COMPLETE ODOO CURRICULUM (Module Development) ===============================
+const curriculum = [
+  { id:'models', name:'Odoo Models', icon:'📊', topic:'MODELS & FIELDS', steps:[
+    { title:'Basic Model & Fields', step:'STEP 1', xp:90,
+      question:`<div class="block"><div class="block-label">🏗️ Odoo Models</div><div class="concept-text">Models inherit from <code>models.Model</code>. Define <code>_name</code>, <code>_description</code>. Fields: <code>fields.Char</code>, <code>fields.Integer</code>, <code>fields.Text</code>.</div></div><div class="code-example"><pre><span class="kw">from odoo import models, fields</span>
+
+<span class="kw">class LibraryBook(models.Model):</span>
+    <span class="kw">_name = 'library.book'</span>
+    <span class="kw">_description = 'Library Book'</span>
+    
+    <span class="kw">name = fields.Char(string='Title', required=True)</span>
+    <span class="kw">author = fields.Char(string='Author')</span>
+    <span class="kw">pages = fields.Integer(string='Pages')</span></pre></div><div class="task-box"><div class="task-text">Create model <code>library.book</code> with fields: <code>name</code> (Char, required), <code>isbn</code> (Char), <code>publication_year</code> (Integer), <code>description</code> (Text). Use proper Odoo imports.</div><button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button><div class="hint-box">from odoo import models, fields\nclass LibraryBook(models.Model):\n    _name = 'library.book'\n    _description = 'Library Book'\n    name = fields.Char(string='Title', required=True)\n    isbn = fields.Char(string='ISBN')\n    publication_year = fields.Integer(string='Publication Year')\n    description = fields.Text(string='Description')</div></div>`,
+      starter:`from odoo import models, fields\n\n# Define LibraryBook model here\n`,
+      check(c){ return /_name\s*=\s*['"]library\.book['"]/.test(c) && /class\s+LibraryBook.*models\.Model/.test(c) && /name\s*=\s*fields\.Char\(.*required=True/.test(c) && /publication_year\s*=\s*fields\.Integer/.test(c) && /description\s*=\s*fields\.Text/.test(c) ? {ok:true, out:"Model library.book defined with required fields"} : {ok:false, msg:"Define class LibraryBook(models.Model) with _name='library.book', name(Char,required), isbn, publication_year, description."}; }
+    },
+    { title:'Relational Fields', step:'STEP 2', xp:100,
+      question:`<div class="block"><div class="block-label">🔗 Relationships</div><div class="concept-text"><code>Many2one</code>, <code>One2many</code>, <code>Many2many</code>. Use <code>comodel_name</code> and <code>inverse_name</code>.</div></div><div class="task-box"><div class="task-text">Add to LibraryBook: <code>publisher_id</code> (Many2one to <code>res.partner</code>). Create One2many from publisher to books using <code>book_ids</code>.</div><button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button><div class="hint-box">publisher_id = fields.Many2one('res.partner', string='Publisher')\n# In res.partner model (conceptually): book_ids = fields.One2many('library.book', 'publisher_id')</div></div>`,
+      starter:`from odoo import models, fields\n\nclass LibraryBook(models.Model):\n    _name = 'library.book'\n    _description = 'Library Book'\n    name = fields.Char(required=True)\n    # Add relational fields\n`,
+      check(c){ return /publisher_id\s*=\s*fields\.Many2one\(['"]res\.partner['"]/.test(c) || /publisher_id.*Many2one/.test(c) ? {ok:true, out:"Relational field added"} : {ok:false, msg:"Add publisher_id Many2one to res.partner."}; }
+    }
+  ]},
+  { id:'views', name:'Views & Menus', icon:'🎨', topic:'XML VIEWS', steps:[
+    { title:'Tree & Form Views', step:'STEP 1', xp:95,
+      question:`<div class="block"><div class="block-label">📐 XML Views</div><div class="concept-text">Views defined in XML: <code>&lt;record model="ir.ui.view"&gt;</code>. Tree views list records, form views edit.</div></div><div class="task-box"><div class="task-text">Write XML for tree view of <code>library.book</code> showing <code>name</code> and <code>author</code> fields. Use <code>&lt;tree&gt;</code> tag.</div><button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button><div class="hint-box"><record id="view_library_book_tree" model="ir.ui.view">\n    <field name="name">library.book.tree</field>\n    <field name="model">library.book</field>\n    <field name="arch" type="xml">\n        <tree>\n            <field name="name"/>\n            <field name="author"/>\n        </tree>\n    </field>\n</record></div></div>`,
+      starter:`<!-- Tree view for library.book -->\n`,
+      check(c){ return /record.*id=".*_tree".*model="ir\.ui\.view"/.test(c) && /<tree>/.test(c) && /<field name="name"\/>/.test(c) && /<field name="author"\/>/.test(c) ? {ok:true, out:"Tree view defined"} : {ok:false, msg:"Create tree view record with fields name and author."}; }
+    },
+    { title:'Search Views & Filters', step:'STEP 2', xp:100,
+      question:`<div class="block"><div class="block-label">🔍 Search Views</div><div class="concept-text"><code>&lt;search&gt;</code> view adds filters and grouping.</div></div><div class="task-box"><div class="task-text">Create search view for <code>library.book</code> with filter for <code>name</code> and group by <code>publisher_id</code>.</div><button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button><div class="hint-box"><search>\n    <field name="name"/>\n    <filter name="group_publisher" string="Publisher" context="{'group_by':'publisher_id'}"/>\n</search></div></div>`,
+      starter:`<!-- Search view -->\n`,
+      check(c){ return /<search>/.test(c) && /<field name="name"\/>/.test(c) && /group_by.*publisher_id/.test(c) ? {ok:true, out:"Search view ready"} : {ok:false, msg:"Add search view with name field and group_by publisher_id."}; }
+    }
+  ]},
+  { id:'business', name:'Business Logic', icon:'⚙️', topic:'PYTHON METHODS', steps:[
+    { title:'Compute Fields', step:'STEP 1', xp:110,
+      question:`<div class="block"><div class="block-label">🧮 Compute Fields</div><div class="concept-text">Use <code>@api.depends</code> decorator. Field with <code>compute</code> attribute.</div></div><div class="task-box"><div class="task-text">Add computed field <code>full_title</code> that returns <code>f"{name} ({author})"</code>. Use <code>@api.depends('name','author')</code>.</div><button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button><div class="hint-box">from odoo import api\nfull_title = fields.Char(string='Full Title', compute='_compute_full_title')\n@api.depends('name','author')\ndef _compute_full_title(self):\n    for rec in self:\n        rec.full_title = f"{rec.name} ({rec.author})"</div></div>`,
+      starter:`from odoo import models, fields, api\n\nclass LibraryBook(models.Model):\n    _name = 'library.book'\n    name = fields.Char()\n    author = fields.Char()\n    # computed field\n`,
+      check(c){ return /@api\.depends\(['"]name['"],\s*['"]author['"]\)/.test(c) && /full_title\s*=\s*fields\.Char\(.*compute/.test(c) && /def\s+_compute_full_title/.test(c) && /rec\.full_title\s*=\s*f["'].*{rec\.name}.*{rec\.author}["']/.test(c) ? {ok:true, out:"Compute field full_title implemented"} : {ok:false, msg:"Add computed field full_title with @api.depends on name and author."}; }
+    },
+    { title:'Constraints & Validation', step:'STEP 2', xp:115,
+      question:`<div class="block"><div class="block-label">⚠️ Constraints</div><div class="concept-text"><code>@api.constrains</code> validates data. Raise <code>ValidationError</code>.</div></div><div class="task-box"><div class="task-text">Add constraint ensuring <code>publication_year</code> is between 1900 and current year. Import <code>ValidationError</code> from <code>odoo.exceptions</code>.</div><button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button><div class="hint-box">from odoo.exceptions import ValidationError\n@api.constrains('publication_year')\ndef _check_year(self):\n    for rec in self:\n        if rec.publication_year and (rec.publication_year < 1900 or rec.publication_year > 2025):\n            raise ValidationError("Year must be between 1900 and 2025")</div></div>`,
+      starter:`from odoo import models, fields, api\nfrom odoo.exceptions import ValidationError\n\nclass LibraryBook(models.Model):\n    _name = 'library.book'\n    publication_year = fields.Integer()\n    # constraint\n`,
+      check(c){ return /@api\.constrains\(['"]publication_year['"]\)/.test(c) && /ValidationError/.test(c) && /publication_year\s*<\s*1900/.test(c) ? {ok:true, out:"Constraint added"} : {ok:false, msg:"Add @api.constrains to validate publication_year range."}; }
+    }
+  ]},
+  { id:'security', name:'Security', icon:'🛡️', topic:'ACCESS RIGHTS', steps:[
+    { title:'Security Files & CSV', step:'STEP 1', xp:105,
+      question:`<div class="block"><div class="block-label">🔐 Security</div><div class="concept-text"><code>ir.model.access.csv</code> defines model permissions: <code>read, write, create, unlink</code>.</div></div><div class="task-box"><div class="task-text">Write CSV line giving full access (1,1,1,1) to group <code>base.group_user</code> for model <code>library.book</code>.</div><button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button><div class="hint-box">id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink\naccess_library_book_user,library.book.user,model_library_book,base.group_user,1,1,1,1</div></div>`,
+      starter:`# ir.model.access.csv entry\n`,
+      check(c){ return /access_library_book/.test(c) && /model_library_book/.test(c) && /base\.group_user/.test(c) && /1,1,1,1/.test(c) ? {ok:true, out:"Access rights defined"} : {ok:false, msg:"Define CSV access line for library.book with full permissions to base.group_user."}; }
+    }
+  ]},
+  { id:'wizards', name:'Wizards & Actions', icon:'✨', topic:'INTERACTIVE', steps:[
+    { title:'Transient Models', step:'STEP 1', xp:120,
+      question:`<div class="block"><div class="block-label">🧙 Wizards</div><div class="concept-text"><code>models.TransientModel</code> for temporary data. Used with <code>@api.model</code> actions.</div></div><div class="task-box"><div class="task-text">Create transient model <code>library.wizard</code> with field <code>message</code> (Text) and method <code>action_confirm</code> returning action.</div><button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button><div class="hint-box">class LibraryWizard(models.TransientModel):\n    _name = 'library.wizard'\n    message = fields.Text(string='Message')\n    def action_confirm(self):\n        return {'type': 'ir.actions.act_window_close'}</div></div>`,
+      starter:`from odoo import models, fields\n\nclass LibraryWizard(models.TransientModel):\n    _name = 'library.wizard'\n    # fields and method\n`,
+      check(c){ return /models\.TransientModel/.test(c) && /_name\s*=\s*['"]library\.wizard['"]/.test(c) && /message\s*=\s*fields\.Text/.test(c) && /def\s+action_confirm/.test(c) ? {ok:true, out:"Transient model created"} : {ok:false, msg:"Define library.wizard TransientModel with message field and action_confirm method."}; }
+    }
+  ]},
+  { id:'inheritance', name:'Inheritance', icon:'🧬', topic:'EXTENDING ODOO', steps:[
+    { title:'Class & View Inheritance', step:'STEP 1', xp:125,
+      question:`<div class="block"><div class="block-label">📌 Inheritance</div><div class="concept-text"><code>_inherit</code> extends existing models. <code>inherit_id</code> in views.</div></div><div class="task-box"><div class="task-text">Inherit <code>res.partner</code> to add field <code>is_library_member</code> (Boolean). Also inherit partner form view to display it.</div><button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button><div class="hint-box">class ResPartner(models.Model):\n    _inherit = 'res.partner'\n    is_library_member = fields.Boolean(string='Library Member')</div></div>`,
+      starter:`from odoo import models, fields\n\nclass ResPartner(models.Model):\n    _inherit = 'res.partner'\n    # add boolean field\n`,
+      check(c){ return /_inherit\s*=\s*['"]res\.partner['"]/.test(c) && /is_library_member\s*=\s*fields\.Boolean/.test(c) ? {ok:true, out:"Partner extended"} : {ok:false, msg:"Inherit res.partner and add is_library_member Boolean field."}; }
+    }
+  ]},
+  { id:'qweb', name:'QWeb Reports', icon:'📄', topic:'PRINTING', steps:[
+    { title:'PDF Reports', step:'STEP 1', xp:130,
+      question:`<div class="block"><div class="block-label">📑 QWeb Reports</div><div class="concept-text">Reports use QWeb templates. Define <code>&lt;record model="ir.actions.report"&gt;</code>.</div></div><div class="task-box"><div class="task-text">Create report action for <code>library.book</code> with template <code>library.report_book</code> and name "Book Report".</div><button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button><div class="hint-box"><record id="report_library_book" model="ir.actions.report">\n    <field name="name">Book Report</field>\n    <field name="model">library.book</field>\n    <field name="report_type">qweb-pdf</field>\n    <field name="report_name">library.report_book</field>\n</record></div></div>`,
+      starter:`<!-- ir.actions.report for library.book -->\n`,
+      check(c){ return /ir\.actions\.report/.test(c) && /model="library\.book"/.test(c) && /report_type.*qweb-pdf/.test(c) && /report_name.*library\.report_book/.test(c) ? {ok:true, out:"Report action defined"} : {ok:false, msg:"Create ir.actions.report record for library.book with qweb-pdf report_type."}; }
+    }
+  ]}
+];
+
+// STATE
+let state = { ch:0, step:0, xp:0, streak:0, done: new Set(), chDone: new Set(), hinted:false };
+function boot(){ buildRail(); loadLesson(); refreshHud(); }
+function buildRail(){
+  const rail = document.getElementById('rail'); rail.innerHTML='';
+  curriculum.forEach((ch,i)=>{
+    let locked = !(i===0 || state.chDone.has(i-1) || state.ch===i);
+    let tab = document.createElement('div');
+    tab.className = `ch-tab ${i===state.ch?'active':''} ${state.chDone.has(i)?'done':''} ${locked?'locked':''}`;
+    tab.innerHTML = `<span>${ch.icon}</span>${ch.name}`;
+    if(!locked) tab.onclick = ()=>{ state.ch=i; state.step=0; buildRail(); loadLesson(); };
+    rail.appendChild(tab);
+  });
+}
+function loadLesson(){
+  let ch = curriculum[state.ch]; let step = ch.steps[state.step];
+  document.getElementById('hdr-chapter').innerText = ch.name;
+  document.getElementById('hdr-steps').innerText = `${state.step+1}/${ch.steps.length}`;
+  document.getElementById('b-step').innerText = step.step;
+  document.getElementById('b-topic').innerText = ch.topic;
+  document.getElementById('l-title').innerText = step.title;
+  document.getElementById('l-body').innerHTML = step.question;
+  document.getElementById('editor').value = step.starter;
+  document.getElementById('console').innerHTML = '<span class="c-dim"># Odoo module validation ready</span>';
+  document.getElementById('o-dot').className = 'out-dot';
+  let pct = (state.step/ch.steps.length)*100;
+  document.getElementById('prog-fill').style.width = pct+'%';
+  syncLines();
+}
+function refreshHud(){
+  document.getElementById('h-xp').innerText = state.xp;
+  document.getElementById('h-str').innerText = state.streak;
+  document.getElementById('h-lv').innerText = Math.floor(state.xp/350)+1;
+}
+function syncLines(){ let ta=document.getElementById('editor'); let lines=ta.value.split('\n').length; document.getElementById('lines').innerHTML=Array.from({length:lines},(_,i)=>i+1).join('\n'); }
+function tabHandle(e){ if(e.key==='Tab'){ e.preventDefault(); let t=e.target; let s=t.selectionStart; t.value=t.value.slice(0,s)+'    '+t.value.slice(t.selectionEnd); t.selectionStart=t.selectionEnd=s+4; syncLines();} if((e.ctrlKey||e.metaKey)&&e.key==='Enter') runCheck(); }
+function resetCode(){ document.getElementById('editor').value=curriculum[state.ch].steps[state.step].starter; document.getElementById('console').innerHTML='<span class="c-dim"># reset</span>'; document.getElementById('o-dot').className='out-dot'; syncLines(); }
+function toggleHint(btn){ let box=btn.nextElementSibling; box.classList.toggle('open'); btn.innerText=box.classList.contains('open')?'🙈 Hide':'💡 Hint'; state.hinted=true; }
+
+function runCheck(){
+  let code = document.getElementById('editor').value;
+  let step = curriculum[state.ch].steps[state.step];
+  let dot = document.getElementById('o-dot'); let con = document.getElementById('console');
+  dot.className='out-dot running'; con.innerHTML='<span class="c-info">validating Odoo module...</span>';
+  setTimeout(()=>{
+    let r = step.check(code);
+    if(r.ok){
+      dot.className='out-dot ok';
+      con.innerHTML = `<span class="c-ok">✓ Odoo Module Valid!\n${r.out||''}</span>`;
+      let key = `${state.ch}-${state.step}`;
+      if(!state.done.has(key)){
+        let earned = state.hinted ? Math.floor(step.xp*0.65) : step.xp;
+        state.xp += earned; state.streak++; state.done.add(key); refreshHud();
+        showModal(true, earned);
+      } else showModal(true,0);
+      spawnSparks();
+    } else {
+      dot.className='out-dot err';
+      con.innerHTML = `<span class="c-err">✗ ${r.msg}</span>`;
+      state.streak = 0; refreshHud();
+    }
+    state.hinted = false;
+  }, 450);
+}
+
+function showModal(ok, earned){
+  let ch = curriculum[state.ch]; let isLastStep = (state.step === ch.steps.length-1);
+  document.getElementById('m-glyph').innerHTML = ok?'⚙️✨':'⚠️';
+  document.getElementById('m-head').innerHTML = isLastStep?`${ch.name} Mastered!`:'Correct!';
+  document.getElementById('m-sub').innerHTML = isLastStep?'Next chapter unlocked. Become Odoo expert!' : 'Great Odoo implementation!';
+  document.getElementById('m-xp').innerHTML = earned>0?`+${earned} XP`:'Already earned';
+  document.getElementById('modal').classList.add('open');
+}
+function advance(){
+  document.getElementById('modal').classList.remove('open');
+  let ch = curriculum[state.ch];
+  if(state.step < ch.steps.length-1){ state.step++; }
+  else {
+    state.chDone.add(state.ch);
+    if(state.ch < curriculum.length-1){ state.ch++; state.step=0; }
+    buildRail();
+  }
+  loadLesson();
+}
+function spawnSparks(){
+  for(let i=0;i<28;i++){ let sp=document.createElement('div'); sp.className='spark'; let ang=(i/28)*Math.PI*2; let dist=60+Math.random()*120; sp.style.cssText=`left:${window.innerWidth/2}px;top:${window.innerHeight/2}px;--dx:${Math.cos(ang)*dist}px;--dy:${Math.sin(ang)*dist}px;`; document.body.appendChild(sp); setTimeout(()=>sp.remove(),900); }
+}
+document.addEventListener('keydown',e=>{ if((e.ctrlKey||e.metaKey)&&e.key==='Enter') runCheck(); });
+boot();
+</script>
+</body>
+</html>

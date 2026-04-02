@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Python Forge — Master Python by Building</title>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&family=Syne:wght@400;600;700;800&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0c10;
+  --surface: #11151c;
+  --surface2: #181e28;
+  --border: #1f2a3a;
+  --border2: #2a3a50;
+  --py-blue: #3776ab;
+  --py-yellow: #ffd43b;
+  --py-green: #4caf50;
+  --py-orange: #ff8c42;
+  --py-cyan: #00bcd4;
+  --py-red: #e74c3c;
+  --success: #10b981;
+  --error: #ef4444;
+  --text: #e2e8f0;
+  --text2: #94a3b8;
+  --code-bg: #03050a;
+  --glow-blue: 0 0 20px rgba(55,114,171,0.4);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--bg);
+  font-family: 'Syne', sans-serif;
+  color: var(--text);
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at 30% 20%, rgba(55,114,171,0.08) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 28px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(10,12,16,0.96);
+  backdrop-filter: blur(14px);
+  z-index: 20;
+  flex-shrink: 0;
+  gap: 20px;
+}
+
+.logo-wrap { display: flex; align-items: center; gap: 12px; }
+.logo-icon {
+  width: 40px; height: 40px;
+  background: linear-gradient(135deg, var(--py-blue), #2c5a8c);
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 1.2rem;
+  box-shadow: var(--glow-blue);
+}
+.logo-text { font-weight: 800; font-size: 1.2rem; letter-spacing: -0.02em; }
+.logo-text .py { color: var(--py-yellow); }
+.logo-text .forge { color: var(--text); }
+.logo-sub { font-size: 0.55rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text2); }
+
+.prog-row { display: flex; justify-content: space-between; font-size: 0.6rem; font-weight: 600; text-transform: uppercase; color: var(--text2); margin-bottom: 4px; }
+.prog-track { height: 3px; background: var(--border); border-radius: 99px; overflow: hidden; }
+.prog-fill { height: 100%; background: linear-gradient(90deg, var(--py-blue), var(--py-cyan)); transition: width 0.5s ease; }
+
+.hud { display: flex; gap: 10px; }
+.hud-chip {
+  font-family: 'Fira Code', monospace; font-size: 0.7rem;
+  padding: 4px 12px; border-radius: 8px; border: 1px solid var(--border2);
+  background: var(--surface); display: flex; align-items: center; gap: 6px;
+}
+.hud-chip.xp { border-color: rgba(55,114,171,0.5); color: var(--py-blue); }
+.hud-chip.flame { border-color: rgba(255,140,66,0.4); color: var(--py-orange); }
+.hud-chip.lvl { border-color: rgba(76,175,80,0.4); color: var(--py-green); }
+
+.chapter-rail {
+  display: flex; padding: 0 28px; border-bottom: 1px solid var(--border);
+  background: rgba(10,12,16,0.9); flex-shrink: 0; overflow-x: auto; gap: 0;
+}
+.ch-tab {
+  padding: 8px 18px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+  color: var(--text2); cursor: pointer; border-bottom: 2px solid transparent;
+  transition: 0.2s; white-space: nowrap; display: flex; align-items: center; gap: 8px;
+}
+.ch-tab:hover { color: var(--text); }
+.ch-tab.active { color: var(--py-yellow); border-bottom-color: var(--py-yellow); }
+.ch-tab.done { color: var(--success); }
+.ch-tab.locked { opacity: 0.3; cursor: not-allowed; pointer-events: none; }
+
+.arena { display: flex; flex: 1; overflow: hidden; position: relative; z-index: 1; }
+
+.lesson-pane {
+  width: 42%; border-right: 1px solid var(--border);
+  background: var(--surface); display: flex; flex-direction: column;
+  overflow: hidden; flex-shrink: 0;
+}
+.lesson-head {
+  padding: 14px 20px; border-bottom: 1px solid var(--border);
+  background: var(--surface2); flex-shrink: 0;
+}
+.lesson-meta { display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+.badge-step { font-family: 'Fira Code', monospace; font-size: 0.55rem; padding: 2px 8px; border-radius: 4px; background: rgba(55,114,171,0.2); color: var(--py-blue); border: 1px solid rgba(55,114,171,0.4); }
+.badge-topic { font-family: 'Fira Code', monospace; font-size: 0.55rem; padding: 2px 8px; border-radius: 4px; background: rgba(255,212,59,0.1); color: var(--py-yellow); }
+.lesson-title { font-weight: 800; font-size: 1rem; letter-spacing: -0.02em; }
+.lesson-body { flex: 1; overflow-y: auto; padding: 20px; scrollbar-width: thin; }
+
+.block { margin-bottom: 20px; animation: fadeUp 0.35s ease both; }
+@keyframes fadeUp { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: translateY(0); } }
+.block-label { font-size: 0.6rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 8px; display: flex; gap: 6px; align-items: center; }
+.concept-text { font-size: 0.85rem; line-height: 1.7; color: #b9c7d9; }
+.concept-text code, .task-text code { font-family: 'Fira Code', monospace; background: var(--code-bg); color: var(--py-yellow); padding: 1px 5px; border-radius: 4px; }
+.code-example { background: var(--code-bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin: 12px 0; }
+.code-example-bar { padding: 6px 12px; background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--border); display: flex; gap: 6px; align-items: center; }
+.dot-r { width: 8px; height: 8px; border-radius: 50%; background: #ff5f56; }
+.dot-y { background: #ffbd2e; }
+.dot-g { background: #27c93f; }
+.code-file { margin-left: auto; font-size: 0.6rem; font-family: monospace; color: var(--text2); }
+.code-example pre { padding: 12px 16px; font-family: 'Fira Code', monospace; font-size: 0.75rem; line-height: 1.6; overflow-x: auto; }
+.kw { color: #c792ea; } .fn { color: #82aaff; } .str { color: #c3e88d; } .num { color: #f78c6c; } .cmt { color: #546e7a; }
+
+.task-box { background: rgba(55,114,171,0.05); border: 1px solid rgba(55,114,171,0.2); border-radius: 12px; padding: 16px; }
+.task-text { font-size: 0.85rem; line-height: 1.65; }
+.hint-toggle { margin-top: 12px; background: none; border: 1px dashed var(--border2); color: var(--text2); font-family: monospace; font-size: 0.7rem; padding: 4px 12px; border-radius: 6px; cursor: pointer; }
+.hint-box { display: none; margin-top: 12px; background: rgba(255,212,59,0.05); border: 1px solid rgba(255,212,59,0.2); border-radius: 8px; padding: 10px; font-family: monospace; font-size: 0.72rem; color: var(--py-yellow); white-space: pre-wrap; }
+.hint-box.open { display: block; }
+
+.editor-pane { flex: 1; display: flex; flex-direction: column; background: var(--code-bg); overflow: hidden; }
+.editor-bar { display: flex; justify-content: space-between; align-items: center; padding: 6px 16px; border-bottom: 1px solid var(--border); background: var(--surface); flex-shrink: 0; }
+.file-tab { font-family: 'Fira Code', monospace; font-size: 0.7rem; padding: 4px 14px; background: rgba(76,175,80,0.08); border: 1px solid rgba(76,175,80,0.3); border-radius: 6px; color: var(--py-green); }
+.editor-controls { display: flex; gap: 12px; align-items: center; }
+.btn-reset, .btn-run {
+  font-family: 'Syne', sans-serif; font-size: 0.7rem; font-weight: 700; padding: 6px 16px;
+  border-radius: 8px; cursor: pointer; transition: 0.2s; border: none;
+}
+.btn-reset { background: transparent; border: 1px solid var(--border2); color: var(--text2); }
+.btn-reset:hover { border-color: var(--py-orange); color: var(--py-orange); }
+.btn-run { background: linear-gradient(135deg, var(--py-blue), #2c5a8c); color: white; box-shadow: 0 0 12px rgba(55,114,171,0.5); }
+.btn-run:hover { transform: translateY(-1px); filter: brightness(1.05); }
+.editor-area { display: flex; flex: 1; min-height: 0; }
+.line-col { padding: 14px 0; text-align: right; font-family: monospace; font-size: 0.75rem; color: #3e4a5f; background: #03050a; border-right: 1px solid var(--border); min-width: 48px; }
+#editor { flex: 1; background: transparent; border: none; outline: none; color: #e2e8f0; font-family: 'Fira Code', monospace; font-size: 0.78rem; line-height: 1.65; padding: 14px; resize: none; white-space: pre; overflow: auto; caret-color: var(--py-cyan); }
+.output-zone { height: 150px; border-top: 1px solid var(--border); background: #05070c; display: flex; flex-direction: column; flex-shrink: 0; }
+.output-bar { padding: 6px 16px; border-bottom: 1px solid var(--border); font-size: 0.6rem; font-weight: 700; text-transform: uppercase; display: flex; justify-content: space-between; }
+.out-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border2); transition: 0.2s; }
+.out-dot.running { background: var(--py-yellow); animation: pulse 0.8s infinite; }
+.out-dot.ok { background: var(--success); box-shadow: 0 0 8px var(--success); }
+.out-dot.err { background: var(--error); }
+@keyframes pulse { 0%,100%{ opacity:0.5; } 50%{ opacity:1; } }
+#console { flex:1; padding: 8px 16px; font-family: monospace; font-size: 0.75rem; overflow-y: auto; white-space: pre-wrap; }
+
+.modal-bg {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(12px);
+  display: flex; align-items: center; justify-content: center; z-index: 200;
+  opacity: 0; pointer-events: none; transition: 0.25s;
+}
+.modal-bg.open { opacity: 1; pointer-events: all; }
+.modal-card {
+  background: var(--surface); border: 1px solid var(--py-blue); border-radius: 28px;
+  padding: 36px; max-width: 400px; width: 90%; text-align: center;
+  transform: scale(0.9); transition: transform 0.35s cubic-bezier(0.2,1.2,0.8,1);
+}
+.modal-bg.open .modal-card { transform: scale(1); }
+.modal-glyph { font-size: 3rem; margin-bottom: 10px; }
+.modal-heading { font-family: 'DM Serif Display', serif; font-size: 1.8rem; margin-bottom: 8px; }
+.modal-sub { color: var(--text2); margin-bottom: 20px; }
+.xp-pill { background: rgba(55,114,171,0.2); border-radius: 40px; padding: 4px 16px; display: inline-block; margin-bottom: 24px; font-family: monospace; }
+.modal-btn { background: linear-gradient(135deg, var(--py-blue), #2c5a8c); border: none; padding: 12px; border-radius: 40px; font-weight: bold; color: white; width: 100%; cursor: pointer; }
+
+.spark { position: fixed; width: 8px; height: 8px; border-radius: 50%; pointer-events: none; z-index: 999; animation: fly 0.8s ease-out forwards; background: var(--py-yellow); }
+@keyframes fly { 0% { transform: translate(0,0) scale(1); opacity:1; } 100% { transform: translate(var(--dx), var(--dy)) scale(0); opacity:0; } }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-wrap">
+    <div class="logo-icon">🐍</div>
+    <div><div class="logo-text"><span class="py">Python</span><span class="forge"> Forge</span></div><div class="logo-sub">Master Python by Building</div></div>
+  </div>
+  <div class="header-mid">
+    <div class="prog-row"><span id="hdr-chapter">Basics</span><span id="hdr-steps">0/0</span></div>
+    <div class="prog-track"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+  </div>
+  <div class="hud"><div class="hud-chip xp">⚡ <span id="h-xp">0</span> XP</div><div class="hud-chip flame">🔥 <span id="h-str">0</span></div><div class="hud-chip lvl">Lv <span id="h-lv">1</span></div></div>
+</header>
+
+<nav class="chapter-rail" id="rail"></nav>
+
+<div class="arena">
+  <div class="lesson-pane">
+    <div class="lesson-head"><div class="lesson-meta"><span class="badge-step" id="b-step">STEP 1</span><span class="badge-topic" id="b-topic">CORE</span></div><div class="lesson-title" id="l-title">Python Foundations</div></div>
+    <div class="lesson-body" id="l-body"></div>
+  </div>
+  <div class="editor-pane">
+    <div class="editor-bar"><div class="file-tab">🐍 main.py</div><div class="editor-controls"><kbd style="font-size:0.6rem;">Ctrl+⏎</kbd><button class="btn-reset" onclick="resetCode()">↺ Reset</button><button class="btn-run" onclick="runCheck()">▶ Run & Check</button></div></div>
+    <div class="editor-area"><div class="line-col" id="lines">1</div><textarea id="editor" spellcheck="false" onkeydown="tabHandle(event)" oninput="syncLines()"></textarea></div>
+    <div class="output-zone"><div class="output-bar"><div><div class="out-dot" id="o-dot"></div> Python Output</div><span style="opacity:0.4;">python3</span></div><div id="console"><span class="c-dim"># Write your Python code & press Run</span></div></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal"><div class="modal-card"><span class="modal-glyph" id="m-glyph">🐍</span><div class="modal-heading" id="m-head">Passed!</div><div class="modal-sub" id="m-sub"></div><div class="xp-pill" id="m-xp">+0 XP</div><button class="modal-btn" onclick="advance()">Next →</button></div></div>
+
+<script>
+// =============================== COMPLETE PYTHON CURRICULUM (Software Dev Path) ===============================
+const curriculum = [
+  { id:'basics', name:'Basics', icon:'🐍', topic:'FUNDAMENTALS', steps:[
+    { title:'Variables & Print', step:'STEP 1', xp:60,
+      question:`<div class="block"><div class="block-label">📖 Variables</div><div class="concept-text">Python is dynamically typed. Use <code>=</code> to assign. <code>print()</code> outputs to console.</div></div><div class="code-example"><pre><span class="kw">name</span> = <span class="str">"Python"</span>
+<span class="kw">version</span> = <span class="num">3.12</span>
+<span class="fn">print</span>(name, version)</pre></div><div class="task-box"><div class="task-text">Create variable <code>language = "Python"</code>, <code>level = "Intermediate"</code>, and print both on separate lines.</div><button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button><div class="hint-box">language = "Python"\nlevel = "Intermediate"\nprint(language)\nprint(level)</div></div>`,
+      starter:`# Declare variables and print\n\n`,
+      check(c){ return /language\s*=\s*["']Python["']/.test(c) && /level\s*=\s*["']Intermediate["']/.test(c) && c.match(/print/g)?.length>=2 ? {ok:true, out:"Python\nIntermediate"} : {ok:false, msg:"Define language and level, then print both."}; }
+    },
+    { title:'Data Types & Type Conversion', step:'STEP 2', xp:70,
+      question:`<div class="block"><div class="block-label">📊 Types</div><div class="concept-text"><code>int, float, str, bool</code>. Use <code>int()</code>, <code>str()</code> to convert.</div></div><div class="task-box"><div class="task-text">Convert <code>num_str = "42"</code> to int, multiply by 2, then print result as string: <code>"Result: 84"</code>.</div><button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button><div class="hint-box">num_str = "42"\nresult = int(num_str) * 2\nprint(f"Result: {result}")</div></div>`,
+      starter:`num_str = "42"\n# convert and print\n`,
+      check(c){ return /int\(\s*num_str\s*\)/.test(c) && /\* 2/.test(c) && /print\(.*Result/.test(c) ? {ok:true, out:"Result: 84"} : {ok:false, msg:"Convert num_str to int, multiply by 2, print with f-string."}; }
+    }
+  ]},
+  { id:'control', name:'Control Flow', icon:'🔀', topic:'LOGIC', steps:[
+    { title:'if/elif/else', step:'STEP 1', xp:75,
+      question:`<div class="block"><div class="block-label">⚖️ Conditions</div><div class="concept-text"><code>if, elif, else</code> control execution.</div></div><div class="task-box"><div class="task-text">Given <code>score = 85</code>, print "A" if >=90, "B" if >=75, else "C".</div><button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button><div class="hint-box">score = 85\nif score >= 90: print("A")\nelif score >= 75: print("B")\nelse: print("C")</div></div>`,
+      starter:`score = 85\n# write if-elif-else\n`,
+      check(c){ return /if\s+score\s*>=\s*90/.test(c) && /elif.*>=.*75/.test(c) && /"B"/.test(c) ? {ok:true, out:"B"} : {ok:false, msg:"Use if-elif-else to grade score 85 → B."}; }
+    },
+    { title:'Loops (for & while)', step:'STEP 2', xp:80,
+      question:`<div class="block"><div class="block-label">🔄 Iteration</div><div class="concept-text"><code>for</code> iterates over sequences, <code>while</code> runs while condition true.</div></div><div class="task-box"><div class="task-text">Use a for loop to print squares of numbers 1 to 5: (1,4,9,16,25).</div><button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button><div class="hint-box">for i in range(1,6): print(i*i)</div></div>`,
+      starter:`# for loop squares\n`,
+      check(c){ return /for\s+\w+\s+in\s+range\(1,\s*6\)/.test(c) && /\*\*\w+|\w+\*\*\w+/.test(c) ? {ok:true, out:"1\n4\n9\n16\n25"} : {ok:false, msg:"Use for loop with range(1,6) and print i*i."}; }
+    }
+  ]},
+  { id:'functions', name:'Functions', icon:'⚙️', topic:'REUSABLE CODE', steps:[
+    { title:'Defining & Returning', step:'STEP 1', xp:85,
+      question:`<div class="block"><div class="block-label">📦 Functions</div><div class="concept-text"><code>def</code> defines a function, <code>return</code> returns value.</div></div><div class="task-box"><div class="task-text">Write a function <code>is_even(n)</code> that returns True if n even, False otherwise. Test with n=7 and print result.</div><button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button><div class="hint-box">def is_even(n): return n % 2 == 0\nprint(is_even(7))</div></div>`,
+      starter:`# define is_even function\n`,
+      check(c){ return /def\s+is_even/.test(c) && /return\s+\w+\s*%\s*2\s*==\s*0/.test(c) && /print\(is_even\(7\)\)/.test(c) ? {ok:true, out:"False"} : {ok:false, msg:"Define is_even with modulo, call with 7."}; }
+    },
+    { title:'Lambda & Scope', step:'STEP 2', xp:90,
+      question:`<div class="block"><div class="block-label">λ Lambda</div><div class="concept-text">Anonymous functions: <code>lambda args: expression</code>. Local vs global scope.</div></div><div class="task-box"><div class="task-text">Create a lambda that multiplies two numbers and assign to <code>multiply</code>. Call it with 6 and 7, print result.</div><button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button><div class="hint-box">multiply = lambda a, b: a * b\nprint(multiply(6,7))</div></div>`,
+      starter:`# lambda multiply\n`,
+      check(c){ return /lambda\s+\w+,\s*\w+/.test(c) && /\*\s*\w+/.test(c) && /print\(multiply\(6,\s*7\)\)/.test(c) ? {ok:true, out:"42"} : {ok:false, msg:"Create lambda for multiplication and call with 6,7."}; }
+    }
+  ]},
+  { id:'collections', name:'Data Structures', icon:'📚', topic:'LISTS, DICTS, SETS', steps:[
+    { title:'Lists & List Comprehension', step:'STEP 1', xp:90,
+      question:`<div class="block"><div class="block-label">📋 Lists</div><div class="concept-text">Mutable sequences. List comprehension: <code>[expr for item in iterable]</code></div></div><div class="task-box"><div class="task-text">Create a list of squares for numbers 1 to 10 using list comprehension. Then print the list.</div><button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button><div class="hint-box">squares = [x*x for x in range(1,11)]\nprint(squares)</div></div>`,
+      starter:`# list comprehension squares\n`,
+      check(c){ return /\[x\*\*2 for x in range\(1,11\)\]/.test(c) && /print\(squares\)/.test(c) ? {ok:true, out:"[1,4,9,16,25,36,49,64,81,100]"} : {ok:false, msg:"Use list comprehension [x*x for x in range(1,11)]."}; }
+    },
+    { title:'Dictionaries & Sets', step:'STEP 2', xp:95,
+      question:`<div class="block"><div class="block-label">📖 Dict & Set</div><div class="concept-text">Dict: key-value pairs. Set: unique elements.</div></div><div class="task-box"><div class="task-text">Create a dictionary <code>person = {"name": "Alice", "age": 30}</code>. Add a new key "city":"Paris" and print all keys.</div><button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button><div class="hint-box">person = {"name": "Alice", "age": 30}\nperson["city"] = "Paris"\nprint(person.keys())</div></div>`,
+      starter:`# dictionary operations\n`,
+      check(c){ return /person\s*=\s*{.*name.*Alice.*age.*30/.test(c) && /person\["city"\]\s*=\s*"Paris"/.test(c) && /print\(person\.keys\(\)/.test(c) ? {ok:true, out:"dict_keys(['name', 'age', 'city'])"} : {ok:false, msg:"Create dict, add city, print keys."}; }
+    }
+  ]},
+  { id:'oop', name:'OOP in Python', icon:'🏛️', topic:'CLASSES & OBJECTS', steps:[
+    { title:'Classes & __init__', step:'STEP 1', xp:110,
+      question:`<div class="block"><div class="block-label">🏗️ Classes</div><div class="concept-text"><code>class</code>, <code>__init__</code> constructor, <code>self</code>.</div></div><div class="task-box"><div class="task-text">Define class <code>Car</code> with attributes <code>brand</code> and <code>year</code>, and method <code>info()</code> returning string. Create instance "Toyota", 2020 and print info.</div><button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button><div class="hint-box">class Car:\n    def __init__(self, brand, year):\n        self.brand = brand; self.year = year\n    def info(self): return f"{self.brand} {self.year}"\nc = Car("Toyota",2020); print(c.info())</div></div>`,
+      starter:`# define Car class\n`,
+      check(c){ return /class\s+Car:/.test(c) && /def\s+__init__/.test(c) && /def\s+info/.test(c) && /Car\(["']Toyota["'],\s*2020\)/.test(c) ? {ok:true, out:"Toyota 2020"} : {ok:false, msg:"Define Car with __init__ and info(), instantiate Toyota 2020."}; }
+    },
+    { title:'Inheritance', step:'STEP 2', xp:120,
+      question:`<div class="block"><div class="block-label">🧬 Inheritance</div><div class="concept-text">Child class inherits from parent. Use <code>super()</code>.</div></div><div class="task-box"><div class="task-text">Create <code>Animal</code> class with <code>speak()</code> returning "sound". Create <code>Dog</code> inherits Animal, override <code>speak()</code> to return "Woof!". Instantiate Dog and print speak().</div><button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button><div class="hint-box">class Animal: def speak(self): return "sound"\nclass Dog(Animal): def speak(self): return "Woof!"\nprint(Dog().speak())</div></div>`,
+      starter:`# inheritance example\n`,
+      check(c){ return /class\s+Animal:/.test(c) && /class\s+Dog\(Animal\):/.test(c) && /def\s+speak/.test(c) && /"Woof!"/.test(c) ? {ok:true, out:"Woof!"} : {ok:false, msg:"Create Animal, Dog inherits, override speak."}; }
+    }
+  ]},
+  { id:'modules', name:'Modules & Packages', icon:'📦', topic:'IMPORTS', steps:[
+    { title:'Import & Built-ins', step:'STEP 1', xp:90,
+      question:`<div class="block"><div class="block-label">📦 Import</div><div class="concept-text">Use <code>import math</code> or <code>from math import sqrt</code>.</div></div><div class="task-box"><div class="task-text">Import <code>math</code> module and print the value of <code>math.pi</code> rounded to 2 decimals using <code>round()</code>.</div><button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button><div class="hint-box">import math\nprint(round(math.pi, 2))</div></div>`,
+      starter:`# import math and print pi rounded\n`,
+      check(c){ return /import\s+math/.test(c) && /math\.pi/.test(c) && /round\(.*2\)/.test(c) ? {ok:true, out:"3.14"} : {ok:false, msg:"Import math, print round(math.pi,2)."}; }
+    }
+  ]},
+  { id:'exceptions', name:'Error Handling', icon:'🛡️', topic:'EXCEPTIONS', steps:[
+    { title:'try/except', step:'STEP 1', xp:95,
+      question:`<div class="block"><div class="block-label">⚠️ Exceptions</div><div class="concept-text">Use <code>try/except</code> to handle errors gracefully.</div></div><div class="task-box"><div class="task-text">Write try-except that attempts to convert <code>"abc"</code> to int, catches <code>ValueError</code> and prints <code>"Invalid number"</code>.</div><button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button><div class="hint-box">try:\n    int("abc")\nexcept ValueError:\n    print("Invalid number")</div></div>`,
+      starter:`# try-except block\n`,
+      check(c){ return /try:/.test(c) && /int\(["']abc["']\)/.test(c) && /except\s+ValueError/.test(c) && /print\(["']Invalid number["']\)/.test(c) ? {ok:true, out:"Invalid number"} : {ok:false, msg:"Use try/except ValueError."}; }
+    }
+  ]},
+  { id:'fileio', name:'File I/O', icon:'📁', topic:'FILES', steps:[
+    { title:'Read/Write Files', step:'STEP 1', xp:100,
+      question:`<div class="block"><div class="block-label">📄 File Handling</div><div class="concept-text"><code>open()</code>, read/write. Use context manager <code>with</code>.</div></div><div class="task-box"><div class="task-text">Write code that writes <code>"Hello Python"</code> to a file named <code>output.txt</code>, then reads and prints its content.</div><button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button><div class="hint-box">with open("output.txt","w") as f: f.write("Hello Python")\nwith open("output.txt") as f: print(f.read())</div></div>`,
+      starter:`# file write and read\n`,
+      check(c){ return /open\(["']output\.txt["'],\s*["']w["']\)/.test(c) && /write\(["']Hello Python["']\)/.test(c) && /open\(["']output\.txt["']\)/.test(c) && /print\(f\.read\(\)\)/.test(c) ? {ok:true, out:"Hello Python"} : {ok:false, msg:"Write to output.txt, then read and print."}; }
+    }
+  ]},
+  { id:'decorators', name:'Decorators', icon:'🎭', topic:'METAPROGRAMMING', steps:[
+    { title:'Decorator Basics', step:'STEP 1', xp:110,
+      question:`<div class="block"><div class="block-label">🎨 Decorators</div><div class="concept-text">Functions that modify other functions. Use <code>@decorator</code> syntax.</div></div><div class="task-box"><div class="task-text">Define a decorator <code>uppercase</code> that makes the returned string uppercase. Apply to function <code>greet()</code> that returns "hello". Print result.</div><button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button><div class="hint-box">def uppercase(func): def wrapper(): return func().upper(); return wrapper\n@uppercase\ndef greet(): return "hello"\nprint(greet())</div></div>`,
+      starter:`# decorator example\n`,
+      check(c){ return /def\s+uppercase/.test(c) && /@uppercase/.test(c) && /def\s+greet/.test(c) && /print\(greet\(\)\)/.test(c) ? {ok:true, out:"HELLO"} : {ok:false, msg:"Define uppercase decorator, apply to greet, print."}; }
+    }
+  ]}
+];
+
+// STATE
+let state = { ch:0, step:0, xp:0, streak:0, done: new Set(), chDone: new Set(), hinted:false };
+function boot(){ buildRail(); loadLesson(); refreshHud(); }
+function buildRail(){
+  const rail = document.getElementById('rail'); rail.innerHTML='';
+  curriculum.forEach((ch,i)=>{
+    let locked = !(i===0 || state.chDone.has(i-1) || state.ch===i);
+    let tab = document.createElement('div');
+    tab.className = `ch-tab ${i===state.ch?'active':''} ${state.chDone.has(i)?'done':''} ${locked?'locked':''}`;
+    tab.innerHTML = `<span>${ch.icon}</span>${ch.name}`;
+    if(!locked) tab.onclick = ()=>{ state.ch=i; state.step=0; buildRail(); loadLesson(); };
+    rail.appendChild(tab);
+  });
+}
+function loadLesson(){
+  let ch = curriculum[state.ch]; let step = ch.steps[state.step];
+  document.getElementById('hdr-chapter').innerText = ch.name;
+  document.getElementById('hdr-steps').innerText = `${state.step+1}/${ch.steps.length}`;
+  document.getElementById('b-step').innerText = step.step;
+  document.getElementById('b-topic').innerText = ch.topic;
+  document.getElementById('l-title').innerText = step.title;
+  document.getElementById('l-body').innerHTML = step.question;
+  document.getElementById('editor').value = step.starter;
+  document.getElementById('console').innerHTML = '<span class="c-dim"># ready</span>';
+  document.getElementById('o-dot').className = 'out-dot';
+  let pct = (state.step/ch.steps.length)*100;
+  document.getElementById('prog-fill').style.width = pct+'%';
+  syncLines();
+}
+function refreshHud(){
+  document.getElementById('h-xp').innerText = state.xp;
+  document.getElementById('h-str').innerText = state.streak;
+  document.getElementById('h-lv').innerText = Math.floor(state.xp/300)+1;
+}
+function syncLines(){ let ta=document.getElementById('editor'); let lines=ta.value.split('\n').length; document.getElementById('lines').innerHTML=Array.from({length:lines},(_,i)=>i+1).join('\n'); }
+function tabHandle(e){ if(e.key==='Tab'){ e.preventDefault(); let t=e.target; let s=t.selectionStart; t.value=t.value.slice(0,s)+'    '+t.value.slice(t.selectionEnd); t.selectionStart=t.selectionEnd=s+4; syncLines();} if((e.ctrlKey||e.metaKey)&&e.key==='Enter') runCheck(); }
+function resetCode(){ document.getElementById('editor').value=curriculum[state.ch].steps[state.step].starter; document.getElementById('console').innerHTML='<span class="c-dim"># reset</span>'; document.getElementById('o-dot').className='out-dot'; syncLines(); }
+function toggleHint(btn){ let box=btn.nextElementSibling; box.classList.toggle('open'); btn.innerText=box.classList.contains('open')?'🙈 Hide':'💡 Hint'; state.hinted=true; }
+
+function runCheck(){
+  let code = document.getElementById('editor').value;
+  let step = curriculum[state.ch].steps[state.step];
+  let dot = document.getElementById('o-dot'); let con = document.getElementById('console');
+  dot.className='out-dot running'; con.innerHTML='<span class="c-info">running...</span>';
+  setTimeout(()=>{
+    let r = step.check(code);
+    if(r.ok){
+      dot.className='out-dot ok';
+      con.innerHTML = `<span class="c-ok">✓ Passed\n${r.out||''}</span>`;
+      let key = `${state.ch}-${state.step}`;
+      if(!state.done.has(key)){
+        let earned = state.hinted ? Math.floor(step.xp*0.65) : step.xp;
+        state.xp += earned; state.streak++; state.done.add(key); refreshHud();
+        showModal(true, earned);
+      } else showModal(true,0);
+      spawnSparks();
+    } else {
+      dot.className='out-dot err';
+      con.innerHTML = `<span class="c-err">✗ ${r.msg}</span>`;
+      state.streak = 0; refreshHud();
+    }
+    state.hinted = false;
+  }, 400);
+}
+
+function showModal(ok, earned){
+  let ch = curriculum[state.ch]; let isLastStep = (state.step === ch.steps.length-1);
+  document.getElementById('m-glyph').innerHTML = ok?'🐍✨':'⚠️';
+  document.getElementById('m-head').innerHTML = isLastStep?`${ch.name} Mastered!`:'Correct!';
+  document.getElementById('m-sub').innerHTML = isLastStep?'Next chapter unlocked. Keep coding!' : 'Great Python solution!';
+  document.getElementById('m-xp').innerHTML = earned>0?`+${earned} XP`:'Already completed';
+  document.getElementById('modal').classList.add('open');
+}
+function advance(){
+  document.getElementById('modal').classList.remove('open');
+  let ch = curriculum[state.ch];
+  if(state.step < ch.steps.length-1){ state.step++; }
+  else {
+    state.chDone.add(state.ch);
+    if(state.ch < curriculum.length-1){ state.ch++; state.step=0; }
+    buildRail();
+  }
+  loadLesson();
+}
+function spawnSparks(){
+  for(let i=0;i<28;i++){ let sp=document.createElement('div'); sp.className='spark'; let ang=(i/28)*Math.PI*2; let dist=60+Math.random()*120; sp.style.cssText=`left:${window.innerWidth/2}px;top:${window.innerHeight/2}px;--dx:${Math.cos(ang)*dist}px;--dy:${Math.sin(ang)*dist}px;`; document.body.appendChild(sp); setTimeout(()=>sp.remove(),900); }
+}
+document.addEventListener('keydown',e=>{ if((e.ctrlKey||e.metaKey)&&e.key==='Enter') runCheck(); });
+boot();
+</script>
+</body>
+</html>
