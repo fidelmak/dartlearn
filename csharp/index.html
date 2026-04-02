@@ -1,0 +1,2377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>C# Forge — Master C# by Building</title>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&family=Syne:wght@400;600;700;800&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d0f14;
+  --surface: #13161f;
+  --surface2: #181c28;
+  --border: #232840;
+  --border2: #2e3555;
+  --cs-purple: #9b59ff;
+  --cs-violet: #7c3aed;
+  --cs-green: #22d3a8;
+  --cs-orange: #ff8c42;
+  --cs-red: #ff4757;
+  --cs-gold: #ffd700;
+  --cs-sky: #38bdf8;
+  --success: #22d3a8;
+  --error: #ff4757;
+  --text: #e2e8f8;
+  --text2: #8892b0;
+  --code-bg: #080a10;
+  --glow-p: 0 0 24px rgba(155,89,255,0.35);
+  --glow-g: 0 0 24px rgba(34,211,168,0.35);
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--bg);
+  font-family: 'Syne', sans-serif;
+  color: var(--text);
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* Diagonal stripe texture */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 40px,
+    rgba(155,89,255,0.012) 40px,
+    rgba(155,89,255,0.012) 41px
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Ambient glow blobs */
+body::after {
+  content: '';
+  position: fixed;
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(124,58,237,0.08) 0%, transparent 70%);
+  top: -200px; left: -100px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── HEADER ── */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 28px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(13,15,20,0.97);
+  backdrop-filter: blur(16px);
+  position: relative;
+  z-index: 20;
+  flex-shrink: 0;
+  gap: 20px;
+}
+
+.logo-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.logo-icon {
+  width: 36px; height: 36px;
+  background: linear-gradient(135deg, var(--cs-purple), var(--cs-violet));
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem;
+  box-shadow: var(--glow-p);
+  flex-shrink: 0;
+}
+
+.logo-text {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 1.15rem;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+.logo-text .cs { color: var(--cs-purple); }
+.logo-text .forge { color: var(--text); }
+.logo-sub {
+  font-size: 0.58rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text2);
+  margin-top: 2px;
+}
+
+.header-mid {
+  flex: 1;
+  max-width: 420px;
+}
+
+.prog-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text2);
+  margin-bottom: 5px;
+}
+.prog-track {
+  height: 3px;
+  background: var(--border);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.prog-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--cs-violet), var(--cs-purple), var(--cs-sky));
+  border-radius: 99px;
+  transition: width 0.6s cubic-bezier(0.34,1.56,0.64,1);
+  box-shadow: 0 0 10px rgba(155,89,255,0.6);
+}
+
+.hud {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.hud-chip {
+  font-family: 'Fira Code', monospace;
+  font-size: 0.7rem;
+  padding: 5px 13px;
+  border-radius: 6px;
+  border: 1px solid var(--border2);
+  background: var(--surface);
+  display: flex; align-items: center; gap: 6px;
+  transition: all 0.3s;
+  white-space: nowrap;
+}
+.hud-chip.xp   { border-color: rgba(155,89,255,0.4); color: var(--cs-purple); }
+.hud-chip.fire { border-color: rgba(255,140,66,0.4); color: var(--cs-orange); }
+.hud-chip.lvl  { border-color: rgba(34,211,168,0.4); color: var(--cs-green); }
+
+/* ── CHAPTER RAIL ── */
+.chapter-rail {
+  display: flex;
+  padding: 0 28px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(13,15,20,0.9);
+  flex-shrink: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  gap: 0;
+  position: relative;
+  z-index: 10;
+}
+.chapter-rail::-webkit-scrollbar { display: none; }
+
+.ch-tab {
+  padding: 9px 18px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text2);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-shrink: 0;
+}
+.ch-tab:hover { color: var(--text); }
+.ch-tab.active { color: var(--cs-purple); border-bottom-color: var(--cs-purple); }
+.ch-tab.done { color: var(--success); }
+.ch-tab.done .ch-icon::after { content: ' ✓'; }
+.ch-tab.locked { opacity: 0.3; cursor: not-allowed; pointer-events: none; }
+.ch-num {
+  font-family: 'Fira Code', monospace;
+  font-size: 0.58rem;
+  opacity: 0.6;
+}
+
+/* ── MAIN SPLIT ── */
+.arena {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── LEFT: LESSON ── */
+.lesson-pane {
+  width: 41%;
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.lesson-head {
+  padding: 14px 20px 12px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-shrink: 0;
+  background: var(--surface2);
+}
+
+.lesson-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.badge-step {
+  font-family: 'Fira Code', monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
+  padding: 2px 9px;
+  border-radius: 4px;
+  background: rgba(155,89,255,0.12);
+  color: var(--cs-purple);
+  border: 1px solid rgba(155,89,255,0.3);
+  text-transform: uppercase;
+}
+
+.badge-topic {
+  font-family: 'Fira Code', monospace;
+  font-size: 0.58rem;
+  padding: 2px 9px;
+  border-radius: 4px;
+  background: rgba(34,211,168,0.08);
+  color: var(--cs-green);
+  border: 1px solid rgba(34,211,168,0.2);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.lesson-title {
+  font-weight: 800;
+  font-size: 1rem;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.lesson-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+.lesson-body::-webkit-scrollbar { width: 4px; }
+.lesson-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+/* Content blocks */
+.block { margin-bottom: 20px; animation: rise 0.4s ease both; }
+@keyframes rise {
+  from { opacity:0; transform: translateY(14px); }
+  to   { opacity:1; transform: translateY(0); }
+}
+
+.block-label {
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.block-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+.concept-lbl { color: var(--cs-sky); }
+.syntax-lbl  { color: var(--cs-orange); }
+.task-lbl    { color: var(--cs-purple); }
+
+.concept-text {
+  font-size: 0.84rem;
+  line-height: 1.72;
+  color: #a8b4d0;
+}
+.concept-text strong { color: var(--cs-green); font-weight: 700; }
+.concept-text em { color: var(--cs-orange); font-style: normal; }
+.concept-text code {
+  font-family: 'Fira Code', monospace;
+  font-size: 0.77rem;
+  background: var(--code-bg);
+  color: var(--cs-gold);
+  padding: 1px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+}
+
+.code-example {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+}
+
+.code-example-bar {
+  padding: 7px 14px;
+  background: rgba(255,255,255,0.03);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.dot-r { width:8px;height:8px;border-radius:50%;background:#ff5f56; }
+.dot-y { width:8px;height:8px;border-radius:50%;background:#ffbd2e; }
+.dot-g { width:8px;height:8px;border-radius:50%;background:#27c93f; }
+.code-file { margin-left:auto; font-family:'Fira Code',monospace; font-size:0.6rem; color:var(--text2); }
+
+.code-example pre {
+  padding: 14px 16px;
+  font-family: 'Fira Code', monospace;
+  font-size: 0.76rem;
+  line-height: 1.68;
+  overflow-x: auto;
+  white-space: pre;
+}
+/* Syntax colors */
+.kw  { color: #c792ea; }
+.kw2 { color: #89ddff; }
+.fn  { color: #82aaff; }
+.str { color: #c3e88d; }
+.num { color: #f78c6c; }
+.cmt { color: #3d5166; font-style: italic; }
+.tp  { color: var(--cs-green); }
+.vr  { color: #eeffff; }
+.op  { color: #89ddff; }
+.at  { color: var(--cs-orange); }
+
+.task-box {
+  background: rgba(155,89,255,0.06);
+  border: 1px solid rgba(155,89,255,0.22);
+  border-radius: 10px;
+  padding: 16px;
+}
+.task-text {
+  font-size: 0.83rem;
+  line-height: 1.7;
+  color: #a8b4d0;
+}
+.task-text code {
+  font-family: 'Fira Code', monospace;
+  font-size: 0.76rem;
+  background: var(--code-bg);
+  color: var(--cs-gold);
+  padding: 1px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+}
+.task-text strong { color: var(--cs-purple); }
+
+.hint-toggle {
+  margin-top: 12px;
+  font-family: 'Fira Code', monospace;
+  font-size: 0.7rem;
+  background: none;
+  border: 1px dashed var(--border2);
+  color: var(--text2);
+  padding: 5px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.hint-toggle:hover { border-color: var(--cs-gold); color: var(--cs-gold); }
+.hint-box {
+  display: none;
+  margin-top: 10px;
+  padding: 11px 14px;
+  background: rgba(255,215,0,0.05);
+  border: 1px solid rgba(255,215,0,0.18);
+  border-radius: 8px;
+  font-family: 'Fira Code', monospace;
+  font-size: 0.72rem;
+  color: var(--cs-gold);
+  line-height: 1.65;
+  white-space: pre-wrap;
+}
+.hint-box.open { display: block; animation: rise 0.3s ease; }
+
+/* ── RIGHT: EDITOR ── */
+.editor-pane {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--code-bg);
+  overflow: hidden;
+}
+
+.editor-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 16px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(19,22,31,0.95);
+  flex-shrink: 0;
+  gap: 12px;
+}
+
+.file-tabs {
+  display: flex;
+  gap: 0;
+}
+.file-tab {
+  font-family: 'Fira Code', monospace;
+  font-size: 0.68rem;
+  padding: 5px 16px;
+  color: var(--cs-green);
+  background: rgba(34,211,168,0.07);
+  border: 1px solid rgba(34,211,168,0.2);
+  border-radius: 6px 6px 0 0;
+  display: flex; align-items: center; gap: 7px;
+}
+
+.editor-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-reset {
+  font-family: 'Fira Code', monospace;
+  font-size: 0.68rem;
+  background: none;
+  border: 1px solid var(--border2);
+  color: var(--text2);
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-reset:hover { border-color: var(--cs-orange); color: var(--cs-orange); }
+
+.btn-run {
+  font-family: 'Syne', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: linear-gradient(135deg, var(--cs-violet), var(--cs-purple));
+  color: #fff;
+  border: none;
+  padding: 7px 22px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 0 18px rgba(124,58,237,0.4);
+  display: flex; align-items: center; gap: 8px;
+}
+.btn-run:hover { transform: translateY(-1px); box-shadow: 0 0 28px rgba(155,89,255,0.55); }
+.btn-run:active { transform: translateY(0); }
+
+.shortcut-hint {
+  font-family: 'Fira Code', monospace;
+  font-size: 0.58rem;
+  color: var(--text2);
+  border: 1px solid var(--border);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* Editor area */
+.editor-area {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.line-col {
+  padding: 16px 0 16px 0;
+  text-align: right;
+  font-family: 'Fira Code', monospace;
+  font-size: 0.76rem;
+  line-height: 1.65;
+  color: #2e3a55;
+  padding-right: 14px;
+  padding-left: 10px;
+  user-select: none;
+  flex-shrink: 0;
+  background: rgba(0,0,0,0.25);
+  border-right: 1px solid var(--border);
+  min-width: 46px;
+  overflow: hidden;
+}
+
+#editor {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #cdd6f4;
+  font-family: 'Fira Code', monospace;
+  font-size: 0.78rem;
+  line-height: 1.65;
+  padding: 16px 16px;
+  resize: none;
+  tab-size: 4;
+  caret-color: var(--cs-purple);
+  white-space: pre;
+  overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+#editor::-webkit-scrollbar { width:6px; height:6px; }
+#editor::-webkit-scrollbar-thumb { background: var(--border); border-radius:99px; }
+
+/* Output */
+.output-zone {
+  height: 150px;
+  border-top: 1px solid var(--border);
+  background: #060810;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+.output-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 16px;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--text2);
+  flex-shrink: 0;
+}
+.out-indicators { display: flex; align-items: center; gap: 8px; }
+.out-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--border2);
+  transition: all 0.3s;
+}
+.out-dot.running { background: var(--cs-gold); box-shadow: 0 0 8px var(--cs-gold); animation: blink 0.5s infinite; }
+.out-dot.ok  { background: var(--success); box-shadow: 0 0 8px var(--success); }
+.out-dot.err { background: var(--error); box-shadow: 0 0 8px var(--error); }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+#console {
+  flex: 1;
+  padding: 10px 16px;
+  font-family: 'Fira Code', monospace;
+  font-size: 0.75rem;
+  line-height: 1.65;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+.c-ok   { color: var(--success); }
+.c-err  { color: var(--error); }
+.c-info { color: var(--cs-sky); }
+.c-dim  { color: var(--text2); }
+.c-warn { color: var(--cs-gold); }
+
+/* ── MODAL ── */
+.modal-bg {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.75);
+  backdrop-filter: blur(10px);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 200;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.3s;
+}
+.modal-bg.open { opacity: 1; pointer-events: all; }
+
+.modal-card {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 20px;
+  padding: 40px 36px;
+  max-width: 420px;
+  width: 92%;
+  text-align: center;
+  transform: scale(0.88) translateY(24px);
+  transition: transform 0.45s cubic-bezier(0.34,1.56,0.64,1);
+  box-shadow: 0 40px 80px rgba(0,0,0,0.6), var(--glow-p);
+}
+.modal-bg.open .modal-card { transform: scale(1) translateY(0); }
+
+.modal-glyph { font-size: 3.2rem; margin-bottom: 14px; display: block; line-height: 1; }
+.modal-heading {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.8rem;
+  margin-bottom: 10px;
+  line-height: 1.1;
+}
+.modal-heading.ok  { color: var(--success); }
+.modal-heading.bad { color: var(--error); }
+.modal-sub { font-size: 0.82rem; color: var(--text2); line-height: 1.6; margin-bottom: 20px; }
+
+.xp-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(155,89,255,0.1);
+  border: 1px solid rgba(155,89,255,0.3);
+  color: var(--cs-purple);
+  font-family: 'Fira Code', monospace;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 6px 18px;
+  border-radius: 99px;
+  margin-bottom: 22px;
+}
+
+.modal-btn {
+  width: 100%;
+  font-family: 'Syne', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  background: linear-gradient(135deg, var(--cs-violet), var(--cs-purple));
+  color: #fff;
+  border: none;
+  padding: 13px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 0 24px rgba(124,58,237,0.4);
+}
+.modal-btn:hover { transform: translateY(-2px); box-shadow: 0 0 36px rgba(155,89,255,0.5); }
+
+/* Particles */
+.spark {
+  position: fixed;
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 999;
+  animation: sparkfly 0.9s ease-out forwards;
+}
+@keyframes sparkfly {
+  0%   { transform: translate(0,0) scale(1.2); opacity:1; }
+  100% { transform: translate(var(--dx),var(--dy)) scale(0); opacity:0; }
+}
+
+/* scrollbar */
+::-webkit-scrollbar { width:5px; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius:99px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-wrap">
+    <div class="logo-icon">C#</div>
+
+    <div>
+      <div class="logo-text"><span class="cs">C#</span><span class="forge"> Forge</span></div>
+      <div class="logo-sub">Master C# by Building</div>
+    </div>
+  </div>
+  <div class="header-mid">
+    <div class="prog-row">
+        <div>---Support Paul with a donation </div> --
+  <div>account number :9072210193 opay--</div>
+      <span id="hdr-chapter">Variables</span>
+      <span id="hdr-steps">0 / 0</span>
+    </div>
+    <div class="prog-track">
+      <div class="prog-fill" id="prog-fill" style="width:0%"></div>
+    </div>
+  </div>
+  <div class="hud">
+    <div class="hud-chip xp">⚡ <span id="h-xp">0</span> XP</div>
+    <div class="hud-chip fire">🔥 <span id="h-str">0</span></div>
+    <div class="hud-chip lvl">Lv <span id="h-lv">1</span></div>
+  </div>
+</header>
+
+<nav class="chapter-rail" id="rail"></nav>
+
+<div class="arena">
+  <!-- LESSON -->
+  <div class="lesson-pane">
+    <div class="lesson-head">
+      <div class="lesson-meta">
+        <span class="badge-step" id="b-step">STEP 1</span>
+        <span class="badge-topic" id="b-topic">BASICS</span>
+      </div>
+      <div class="lesson-title" id="l-title">Welcome to C#</div>
+    </div>
+    <div class="lesson-body" id="l-body"></div>
+  </div>
+
+  <!-- EDITOR -->
+  <div class="editor-pane">
+    <div class="editor-bar">
+      <div class="file-tabs">
+        <div class="file-tab">⬡ Program.cs</div>
+      </div>
+      <div class="editor-controls">
+        <kbd class="shortcut-hint">Ctrl+Enter</kbd>
+        <button class="btn-reset" onclick="resetCode()">↺ Reset</button>
+        <button class="btn-run" onclick="runCheck()">▶ Compile &amp; Check</button>
+      </div>
+    </div>
+    <div class="editor-area">
+      <div class="line-col" id="lines">1</div>
+      <textarea id="editor" spellcheck="false" autocorrect="off"
+        onkeydown="tabHandle(event)" oninput="syncLines()"></textarea>
+    </div>
+    <div class="output-zone">
+      <div class="output-bar">
+        <div class="out-indicators">
+          <div class="out-dot" id="o-dot"></div>
+          <span>Console Output</span>
+        </div>
+        <span style="font-size:0.55rem; opacity:0.4;">C# Forge Sandbox v1.0</span>
+      </div>
+      <div id="console"><span class="c-dim">// Write your code above and click Compile &amp; Check...</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modal">
+  <div class="modal-card">
+    <span class="modal-glyph" id="m-glyph">🎯</span>
+    <div class="modal-heading ok" id="m-head">Correct!</div>
+    <div class="modal-sub" id="m-sub"></div>
+    <div class="xp-pill" id="m-xp">+100 XP</div>
+    <button class="modal-btn" onclick="advance()">Next Lesson →</button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+//   C# FORGE — COMPLETE CURRICULUM
+// ═══════════════════════════════════════════════════════════
+
+const curriculum = [
+
+// ── 1. VARIABLES & DATA TYPES ──────────────────────────────
+{
+  id:'variables', name:'Variables', icon:'📦', topic:'DATA TYPES',
+  steps:[
+    {
+      title:'Declaring Variables',
+      step:'STEP 1', xp:60,
+      question:`
+<div class="block">
+  <div class="block-label concept-lbl">Concept</div>
+  <div class="concept-text">
+    In C#, every variable has a <strong>type</strong>. You declare a variable with its type first, then its name.<br><br>
+    Common types: <code>int</code> (whole numbers), <code>double</code> (decimals), <code>string</code> (text), <code>bool</code> (true/false), <code>char</code> (single character).
+  </div>
+</div>
+<div class="block">
+  <div class="block-label syntax-lbl">Syntax Example</div>
+  <div class="code-example">
+    <div class="code-example-bar"><div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div><span class="code-file">Program.cs</span></div>
+    <pre><span class="tp">int</span> <span class="vr">age</span> <span class="op">=</span> <span class="num">25</span>;
+<span class="tp">double</span> <span class="vr">price</span> <span class="op">=</span> <span class="num">9.99</span>;
+<span class="tp">string</span> <span class="vr">name</span> <span class="op">=</span> <span class="str">"Alice"</span>;
+<span class="tp">bool</span> <span class="vr">isActive</span> <span class="op">=</span> <span class="kw">true</span>;
+<span class="tp">char</span> <span class="vr">grade</span> <span class="op">=</span> <span class="str">'A'</span>;
+
+Console<span class="op">.</span><span class="fn">WriteLine</span>(name);</pre>
+  </div>
+</div>
+<div class="block">
+  <div class="block-label task-lbl">⚡ Your Challenge</div>
+  <div class="task-box">
+    <div class="task-text">
+      Declare an <code>int</code> called <code>year</code> set to <code>2024</code>.<br>
+      Declare a <code>string</code> called <code>language</code> set to <code>"C#"</code>.<br>
+      Print both using <code>Console.WriteLine()</code>.
+    </div>
+    <button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button>
+    <div class="hint-box">int year = 2024;\nstring language = "C#";\nConsole.WriteLine(year);\nConsole.WriteLine(language);</div>
+  </div>
+</div>`,
+      starter:`using System;\n\nclass Program {\n    static void Main() {\n        // Declare your variables here\n        \n    }\n}`,
+      check(c) {
+        const hasInt = /int\s+year\s*=\s*2024/.test(c);
+        const hasStr = /string\s+language\s*=\s*"C#"/.test(c);
+        const hasPrint = /Console\.WriteLine/.test(c);
+        if (!hasInt) return { ok:false, msg:'Declare: int year = 2024;' };
+        if (!hasStr) return { ok:false, msg:'Declare: string language = "C#";' };
+        if (!hasPrint) return { ok:false, msg:'Use Console.WriteLine() to print both.' };
+        return { ok:true, out:'2024\nC#' };
+      }
+    },
+    {
+      title:'var and Type Inference',
+      step:'STEP 2', xp:65,
+      question:`
+<div class="block">
+  <div class="block-label concept-lbl">Concept</div>
+  <div class="concept-text">
+    C# can <strong>infer</strong> the type automatically using <code>var</code>. The compiler figures out the type from the value. <code>var</code> is still <em>strongly typed</em> — you just don't have to write the type explicitly.
+  </div>
+</div>
+<div class="block">
+  <div class="block-label syntax-lbl">Example</div>
+  <div class="code-example">
+    <div class="code-example-bar"><div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div></div>
+    <pre><span class="kw">var</span> <span class="vr">city</span> <span class="op">=</span> <span class="str">"Lagos"</span>;    <span class="cmt">// inferred: string</span>
+<span class="kw">var</span> <span class="vr">count</span> <span class="op">=</span> <span class="num">42</span>;       <span class="cmt">// inferred: int</span>
+<span class="kw">var</span> <span class="vr">pi</span> <span class="op">=</span> <span class="num">3.14159</span>;    <span class="cmt">// inferred: double</span>
+<span class="cmt">// var x; ← ERROR: must assign!</span></pre>
+  </div>
+</div>
+<div class="block">
+  <div class="block-label task-lbl">⚡ Your Challenge</div>
+  <div class="task-box">
+    <div class="task-text">
+      Using <code>var</code>, declare three variables:<br>
+      • <code>firstName</code> = <code>"Grace"</code><br>
+      • <code>score</code> = <code>99</code><br>
+      • <code>gpa</code> = <code>3.9</code><br>
+      Print all three.
+    </div>
+    <button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button>
+    <div class="hint-box">var firstName = "Grace";\nvar score = 99;\nvar gpa = 3.9;\nConsole.WriteLine(firstName);\nConsole.WriteLine(score);\nConsole.WriteLine(gpa);</div>
+  </div>
+</div>`,
+      starter:`using System;\n\nclass Program {\n    static void Main() {\n        // Use var for all three\n        \n    }\n}`,
+      check(c) {
+        const f = /var\s+firstName\s*=\s*"Grace"/.test(c);
+        const s = /var\s+score\s*=\s*99/.test(c);
+        const g = /var\s+gpa\s*=\s*3\.9/.test(c);
+        const p = (c.match(/Console\.WriteLine/g)||[]).length >= 3;
+        if (!f) return { ok:false, msg:'Declare: var firstName = "Grace";' };
+        if (!s) return { ok:false, msg:'Declare: var score = 99;' };
+        if (!g) return { ok:false, msg:'Declare: var gpa = 3.9;' };
+        if (!p) return { ok:false, msg:'Print all three variables.' };
+        return { ok:true, out:'Grace\n99\n3.9' };
+      }
+    },
+    {
+      title:'Constants with const',
+      step:'STEP 3', xp:70,
+      question:`
+<div class="block">
+  <div class="block-label concept-lbl">Concept</div>
+  <div class="concept-text">
+    <code>const</code> declares a <strong>compile-time constant</strong> — its value is fixed forever. Use it for values that never change like <code>Math.PI</code>, tax rates, or version numbers.
+  </div>
+</div>
+<div class="block">
+  <div class="block-label syntax-lbl">Example</div>
+  <div class="code-example">
+    <div class="code-example-bar"><div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div></div>
+    <pre><span class="kw">const</span> <span class="tp">double</span> <span class="vr">PI</span> <span class="op">=</span> <span class="num">3.14159</span>;
+<span class="kw">const</span> <span class="tp">int</span> <span class="vr">MAX_USERS</span> <span class="op">=</span> <span class="num">1000</span>;
+<span class="kw">const</span> <span class="tp">string</span> <span class="vr">APP_NAME</span> <span class="op">=</span> <span class="str">"C# Forge"</span>;
+<span class="cmt">// PI = 4; ← ERROR: cannot assign to const</span></pre>
+  </div>
+</div>
+<div class="block">
+  <div class="block-label task-lbl">⚡ Your Challenge</div>
+  <div class="task-box">
+    <div class="task-text">
+      Declare <code>const double GRAVITY = 9.8;</code><br>
+      Declare <code>const string PLANET = "Earth";</code><br>
+      Print: <code>Gravity on Earth is 9.8</code> using string interpolation (<code>$"..."</code>).
+    </div>
+    <button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button>
+    <div class="hint-box">const double GRAVITY = 9.8;\nconst string PLANET = "Earth";\nConsole.WriteLine($"Gravity on {PLANET} is {GRAVITY}");</div>
+  </div>
+</div>`,
+      starter:`using System;\n\nclass Program {\n    static void Main() {\n        // Define constants and print\n        \n    }\n}`,
+      check(c) {
+        const g = /const\s+double\s+GRAVITY\s*=\s*9\.8/.test(c);
+        const p = /const\s+string\s+PLANET\s*=\s*"Earth"/.test(c);
+        const pr = /Console\.WriteLine\s*\(\s*\$"[^"]*GRAVITY[^"]*"\s*\)/.test(c) ||
+                   /Console\.WriteLine\s*\(\s*\$"[^"]*9\.8[^"]*"\s*\)/.test(c) ||
+                   /Console\.WriteLine\s*\(\s*\$"Gravity on/.test(c);
+        if (!g) return { ok:false, msg:'Declare: const double GRAVITY = 9.8;' };
+        if (!p) return { ok:false, msg:'Declare: const string PLANET = "Earth";' };
+        if (!pr) return { ok:false, msg:'Print using $"...{GRAVITY}..." interpolation.' };
+        return { ok:true, out:'Gravity on Earth is 9.8' };
+      }
+    }
+  ]
+},
+
+// ── 2. OPERATORS ──────────────────────────────────────────
+{
+  id:'operators', name:'Operators', icon:'➗', topic:'EXPRESSIONS',
+  steps:[
+    {
+      title:'Arithmetic Operators',
+      step:'STEP 1', xp:65,
+      question:`
+<div class="block">
+  <div class="block-label concept-lbl">Concept</div>
+  <div class="concept-text">
+    C# supports all standard math operators: <code>+</code> <code>-</code> <code>*</code> <code>/</code> <code>%</code> (modulo).<br><br>
+    Integer division truncates: <code>7 / 2 = 3</code>, not <code>3.5</code>. Use <code>double</code> for decimals!
+  </div>
+</div>
+<div class="block">
+  <div class="block-label syntax-lbl">Example</div>
+  <div class="code-example">
+    <div class="code-example-bar"><div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div></div>
+    <pre><span class="tp">int</span> <span class="vr">a</span> <span class="op">=</span> <span class="num">10</span>, <span class="vr">b</span> <span class="op">=</span> <span class="num">3</span>;
+Console<span class="op">.</span><span class="fn">WriteLine</span>(a <span class="op">+</span> b);   <span class="cmt">// 13</span>
+Console<span class="op">.</span><span class="fn">WriteLine</span>(a <span class="op">-</span> b);   <span class="cmt">// 7</span>
+Console<span class="op">.</span><span class="fn">WriteLine</span>(a <span class="op">*</span> b);   <span class="cmt">// 30</span>
+Console<span class="op">.</span><span class="fn">WriteLine</span>(a <span class="op">/</span> b);   <span class="cmt">// 3</span>
+Console<span class="op">.</span><span class="fn">WriteLine</span>(a <span class="op">%</span> b);   <span class="cmt">// 1 (remainder)</span>
+a<span class="op">++</span>;  <span class="cmt">// a becomes 11</span>
+b<span class="op">--</span>;  <span class="cmt">// b becomes 2</span></pre>
+  </div>
+</div>
+<div class="block">
+  <div class="block-label task-lbl">⚡ Your Challenge</div>
+  <div class="task-box">
+    <div class="task-text">
+      Declare <code>int x = 20, y = 6;</code><br>
+      Print: the result of <code>x % y</code> (remainder).<br>
+      Then increment <code>x</code> with <code>x++</code> and print <code>x</code> again.
+    </div>
+    <button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button>
+    <div class="hint-box">int x = 20, y = 6;\nConsole.WriteLine(x % y);\nx++;\nConsole.WriteLine(x);</div>
+  </div>
+</div>`,
+      starter:`using System;\n\nclass Program {\n    static void Main() {\n        // Arithmetic operations\n        \n    }\n}`,
+      check(c) {
+        const hasDecl = /int\s+x\s*=\s*20/.test(c) && /y\s*=\s*6/.test(c);
+        const hasMod  = /x\s*%\s*y/.test(c);
+        const hasInc  = /x\+\+/.test(c);
+        const hasPrint = (c.match(/Console\.WriteLine/g)||[]).length >= 2;
+        if (!hasDecl) return { ok:false, msg:'Declare: int x = 20, y = 6;' };
+        if (!hasMod)  return { ok:false, msg:'Compute x % y and print it.' };
+        if (!hasInc)  return { ok:false, msg:'Use x++ to increment x.' };
+        if (!hasPrint) return { ok:false, msg:'Print both results.' };
+        return { ok:true, out:'2\n21' };
+      }
+    },
+    {
+      title:'Comparison & Logical Operators',
+      step:'STEP 2', xp:70,
+      question:`
+<div class="block">
+  <div class="block-label concept-lbl">Concept</div>
+  <div class="concept-text">
+    <strong>Comparison</strong>: <code>==</code> <code>!=</code> <code>&gt;</code> <code>&lt;</code> <code>&gt;=</code> <code>&lt;=</code> — all return <code>bool</code>.<br><br>
+    <strong>Logical</strong>: <code>&amp;&amp;</code> (AND), <code>||</code> (OR), <code>!</code> (NOT).
+  </div>
+</div>
+<div class="block">
+  <div class="block-label syntax-lbl">Example</div>
+  <div class="code-example">
+    <div class="code-example-bar"><div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div></div>
+    <pre><span class="tp">int</span> <span class="vr">age</span> <span class="op">=</span> <span class="num">20</span>;
+<span class="tp">bool</span> <span class="vr">adult</span> <span class="op">=</span> age <span class="op">>=</span> <span class="num">18</span>;       <span class="cmt">// true</span>
+<span class="tp">bool</span> <span class="vr">teen</span>  <span class="op">=</span> age <span class="op">>=</span> <span class="num">13</span> <span class="op">&amp;&amp;</span> age <span class="op">&lt;</span> <span class="num">20</span>; <span class="cmt">// false</span>
+Console<span class="op">.</span><span class="fn">WriteLine</span>(adult);   <span class="cmt">// True</span>
+Console<span class="op">.</span><span class="fn">WriteLine</span>(!adult);  <span class="cmt">// False</span></pre>
+  </div>
+</div>
+<div class="block">
+  <div class="block-label task-lbl">⚡ Your Challenge</div>
+  <div class="task-box">
+    <div class="task-text">
+      Declare <code>int temp = 35;</code><br>
+      Create <code>bool isHot = temp > 30;</code><br>
+      Create <code>bool isBoiling = temp >= 100;</code><br>
+      Print both booleans.
+    </div>
+    <button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button>
+    <div class="hint-box">int temp = 35;\nbool isHot = temp > 30;\nbool isBoiling = temp >= 100;\nConsole.WriteLine(isHot);\nConsole.WriteLine(isBoiling);</div>
+  </div>
+</div>`,
+      starter:`using System;\n\nclass Program {\n    static void Main() {\n        // Comparison operators\n        \n    }\n}`,
+      check(c) {
+        const hasTemp = /int\s+temp\s*=\s*35/.test(c);
+        const hasHot  = /bool\s+isHot\s*=\s*temp\s*>\s*30/.test(c);
+        const hasBoi  = /bool\s+isBoiling\s*=\s*temp\s*>=\s*100/.test(c);
+        const hasPrint = (c.match(/Console\.WriteLine/g)||[]).length >= 2;
+        if (!hasTemp) return { ok:false, msg:'Declare: int temp = 35;' };
+        if (!hasHot)  return { ok:false, msg:'Declare: bool isHot = temp > 30;' };
+        if (!hasBoi)  return { ok:false, msg:'Declare: bool isBoiling = temp >= 100;' };
+        if (!hasPrint) return { ok:false, msg:'Print both booleans.' };
+        return { ok:true, out:'True\nFalse' };
+      }
+    }
+  ]
+},
+
+// ── 3. CONTROL FLOW ───────────────────────────────────────
+{
+  id:'control', name:'Control Flow', icon:'🔀', topic:'LOGIC',
+  steps:[
+    {
+      title:'if / else if / else',
+      step:'STEP 1', xp:80,
+      question:`
+<div class="block">
+  <div class="block-label concept-lbl">Concept</div>
+  <div class="concept-text">
+    <strong>if-else</strong> lets your program make decisions. C# evaluates the condition and executes the matching block.
+  </div>
+</div>
+<div class="block">
+  <div class="block-label syntax-lbl">Example</div>
+  <div class="code-example">
+    <div class="code-example-bar"><div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div></div>
+    <pre><span class="tp">int</span> <span class="vr">score</span> <span class="op">=</span> <span class="num">75</span>;
+<span class="kw">if</span> (score <span class="op">>=</span> <span class="num">90</span>) {
+    Console<span class="op">.</span><span class="fn">WriteLine</span>(<span class="str">"A"</span>);
+} <span class="kw">else if</span> (score <span class="op">>=</span> <span class="num">70</span>) {
+    Console<span class="op">.</span><span class="fn">WriteLine</span>(<span class="str">"B"</span>);
+} <span class="kw">else</span> {
+    Console<span class="op">.</span><span class="fn">WriteLine</span>(<span class="str">"C or below"</span>);
+}</pre>
+  </div>
+</div>
+<div class="block">
+  <div class="block-label task-lbl">⚡ Your Challenge</div>
+  <div class="task-box">
+    <div class="task-text">
+      Write an if-else chain for <code>int age = 20</code>:<br>
+      • If age &lt; 13 → print <code>"Child"</code><br>
+      • Else if age &lt; 18 → print <code>"Teenager"</code><br>
+      • Else → print <code>"Adult"</code>
+    </div>
+    <button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button>
+    <div class="hint-box">int age = 20;\nif (age < 13) {\n    Console.WriteLine("Child");\n} else if (age < 18) {\n    Console.WriteLine("Teenager");\n} else {\n    Console.WriteLine("Adult");\n}</div>
+  </div>
+</div>`,
+      starter:`using System;\n\nclass Program {\n    static void Main() {\n        int age = 20;\n        // Write your if-else chain\n        \n    }\n}`,
+      check(c) {
+        const hasIf   = /if\s*\(\s*age\s*<\s*13\s*\)/.test(c);
+        const hasElif = /else\s+if\s*\(\s*age\s*<\s*18\s*\)/.test(c);
+        const hasElse = /else\s*\{/.test(c);
+        const hasAdult = /"Adult"/.test(c);
+        if (!hasIf)   return { ok:false, msg:'Add: if (age < 13) { ... }' };
+        if (!hasElif) return { ok:false, msg:'Add: else if (age < 18) { ... }' };
+        if (!hasElse) return { ok:false, msg:'Add an else block for "Adult".' };
+        if (!hasAdult) return { ok:false, msg:'Print "Adult" in the else block.' };
+        return { ok:true, out:'Adult' };
+      }
+    },
+    {
+      title:'switch Statement',
+      step:'STEP 2', xp:85,
+      question:`
+<div class="block">
+  <div class="block-label concept-lbl">Concept</div>
+  <div class="concept-text">
+    <code>switch</code> matches a value against multiple <code>case</code> labels — cleaner than many if-else chains. Don't forget <code>break</code> or fall-through will occur!
+  </div>
+</div>
+<div class="block">
+  <div class="block-label syntax-lbl">Example</div>
+  <div class="code-example">
+    <div class="code-example-bar"><div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div></div>
+    <pre><span class="tp">string</span> <span class="vr">day</span> <span class="op">=</span> <span class="str">"Monday"</span>;
+<span class="kw">switch</span> (day) {
+    <span class="kw">case</span> <span class="str">"Monday"</span>:
+        Console<span class="op">.</span><span class="fn">WriteLine</span>(<span class="str">"Start of week"</span>);
+        <span class="kw">break</span>;
+    <span class="kw">case</span> <span class="str">"Friday"</span>:
+        Console<span class="op">.</span><span class="fn">WriteLine</span>(<span class="str">"Almost weekend!"</span>);
+        <span class="kw">break</span>;
+    <span class="kw">default</span>:
+        Console<span class="op">.</span><span class="fn">WriteLine</span>(<span class="str">"Midweek"</span>);
+        <span class="kw">break</span>;
+}</pre>
+  </div>
+</div>
+<div class="block">
+  <div class="block-label task-lbl">⚡ Your Challenge</div>
+  <div class="task-box">
+    <div class="task-text">
+      Create <code>int month = 3;</code> and write a <code>switch</code> that prints:<br>
+      • 1 → <code>"January"</code> &nbsp;• 2 → <code>"February"</code><br>
+      • 3 → <code>"March"</code> &nbsp;&nbsp;&nbsp;• default → <code>"Other"</code>
+    </div>
+    <button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button>
+    <div class="hint-box">int month = 3;\nswitch (month) {\n    case 1: Console.WriteLine("January"); break;\n    case 2: Console.WriteLine("February"); break;\n    case 3: Console.WriteLine("March"); break;\n    default: Console.WriteLine("Other"); break;\n}</div>
+  </div>
+</div>`,
+      starter:`using System;\n\nclass Program {\n    static void Main() {\n        int month = 3;\n        // Write your switch statement\n        \n    }\n}`,
+      check(c) {
+        const hasSw = /switch\s*\(\s*month\s*\)/.test(c);
+        const has3  = /case\s+3\s*:/.test(c);
+        const hasMarch = /"March"/.test(c);
+        const hasDef = /default\s*:/.test(c);
+        if (!hasSw)    return { ok:false, msg:'Write: switch (month) { ... }' };
+        if (!has3)     return { ok:false, msg:'Add case 3: for March.' };
+        if (!hasMarch) return { ok:false, msg:'Print "March" for case 3.' };
+        if (!hasDef)   return { ok:false, msg:'Add a default: case.' };
+        return { ok:true, out:'March' };
+      }
+    },
+    {
+      title:'Ternary Operator',
+      step:'STEP 3', xp:75,
+      question:`
+<div class="block">
+  <div class="block-label concept-lbl">Concept</div>
+  <div class="concept-text">
+    The <strong>ternary operator</strong> <code>? :</code> is a compact if-else in one line:<br>
+    <code>condition ? valueIfTrue : valueIfFalse</code>
+  </div>
+</div>
+<div class="block">
+  <div class="block-label syntax-lbl">Example</div>
+  <div class="code-example">
+    <div class="code-example-bar"><div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div></div>
+    <pre><span class="tp">int</span> <span class="vr">num</span> <span class="op">=</span> <span class="num">7</span>;
+<span class="tp">string</span> <span class="vr">result</span> <span class="op">=</span> num <span class="op">%</span> <span class="num">2</span> <span class="op">==</span> <span class="num">0</span> <span class="op">?</span> <span class="str">"Even"</span> <span class="op">:</span> <span class="str">"Odd"</span>;
+Console<span class="op">.</span><span class="fn">WriteLine</span>(result); <span class="cmt">// Odd</span></pre>
+  </div>
+</div>
+<div class="block">
+  <div class="block-label task-lbl">⚡ Your Challenge</div>
+  <div class="task-box">
+    <div class="task-text">
+      Use a ternary to check if <code>int speed = 120</code> is over the limit (100).<br>
+      Store result in <code>string status</code> — either <code>"Over limit"</code> or <code>"OK"</code>.<br>
+      Print <code>status</code>.
+    </div>
+    <button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button>
+    <div class="hint-box">int speed = 120;\nstring status = speed > 100 ? "Over limit" : "OK";\nConsole.WriteLine(status);</div>
+  </div>
+</div>`,
+      starter:`using System;\n\nclass Program {\n    static void Main() {\n        int speed = 120;\n        // Use ternary operator\n        \n    }\n}`,
+      check(c) {
+        const hasTern = /speed\s*>\s*100\s*\?\s*"Over limit"\s*:\s*"OK"/.test(c) ||
+                        /speed\s*>\s*100\s*\?/.test(c);
+        const hasStatus = /string\s+status/.test(c);
+        const hasPrint  = /Console\.WriteLine\s*\(\s*status\s*\)/.test(c);
+        if (!hasTern)   return { ok:false, msg:'Use: speed > 100 ? "Over limit" : "OK"' };
+        if (!hasStatus) return { ok:false, msg:'Store result in: string status' };
+        if (!hasPrint)  return { ok:false, msg:'Print status.' };
+        return { ok:true, out:'Over limit' };
+      }
+    }
+  ]
+},
+
+// ── 4. LOOPS ──────────────────────────────────────────────
+{
+  id:'loops', name:'Loops', icon:'🔁', topic:'ITERATION',
+  steps:[
+    {
+      title:'for Loop',
+      step:'STEP 1', xp:80,
+      question:`
+<div class="block">
+  <div class="block-label concept-lbl">Concept</div>
+  <div class="concept-text">
+    The <code>for</code> loop runs a block a set number of times. It has three parts: <em>initializer</em>, <em>condition</em>, and <em>iterator</em>.
+  </div>
+</div>
+<div class="block">
+  <div class="block-label syntax-lbl">Example</div>
+  <div class="code-example">
+    <div class="code-example-bar"><div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div></div>
+    <pre><span class="kw">for</span> (<span class="tp">int</span> <span class="vr">i</span> <span class="op">=</span> <span class="num">0</span>; i <span class="op">&lt;</span> <span class="num">5</span>; i<span class="op">++</span>) {
+    Console<span class="op">.</span><span class="fn">WriteLine</span>($<span class="str">"Step {i}"</span>);
+}
+<span class="cmt">// Prints: Step 0, Step 1, ... Step 4</span></pre>
+  </div>
+</div>
+<div class="block">
+  <div class="block-label task-lbl">⚡ Your Challenge</div>
+  <div class="task-box">
+    <div class="task-text">
+      Write a <code>for</code> loop that prints the <strong>multiplication table of 5</strong>:<br>
+      <code>5 x 1 = 5</code>, <code>5 x 2 = 10</code>, ... <code>5 x 10 = 50</code>
+    </div>
+    <button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button>
+    <div class="hint-box">for (int i = 1; i <= 10; i++) {\n    Console.WriteLine($"5 x {i} = {5 * i}");\n}</div>
+  </div>
+</div>`,
+      starter:`using System;\n\nclass Program {\n    static void Main() {\n        // Times table of 5\n        \n    }\n}`,
+      check(c) {
+        const hasFor = /for\s*\(/.test(c);
+        const hasI10 = /i\s*<=\s*10/.test(c) || /i\s*<\s*11/.test(c);
+        const hasMul = /5\s*\*\s*i|i\s*\*\s*5/.test(c);
+        const hasPrint = /Console\.WriteLine/.test(c);
+        if (!hasFor)   return { ok:false, msg:'Write a for loop.' };
+        if (!hasI10)   return { ok:false, msg:'Loop from 1 to 10 (i <= 10).' };
+        if (!hasMul)   return { ok:false, msg:'Compute 5 * i inside the loop.' };
+        return { ok:true, out:'5 x 1 = 5\n5 x 2 = 10\n5 x 3 = 15\n5 x 4 = 20\n5 x 5 = 25\n5 x 6 = 30\n5 x 7 = 35\n5 x 8 = 40\n5 x 9 = 45\n5 x 10 = 50' };
+      }
+    },
+    {
+      title:'while & do-while',
+      step:'STEP 2', xp:85,
+      question:`
+<div class="block">
+  <div class="block-label concept-lbl">Concept</div>
+  <div class="concept-text">
+    <code>while</code> keeps looping as long as the condition is true (checks <em>before</em> each iteration).<br>
+    <code>do-while</code> always runs <em>at least once</em> (checks <em>after</em>).
+  </div>
+</div>
+<div class="block">
+  <div class="block-label syntax-lbl">Example</div>
+  <div class="code-example">
+    <div class="code-example-bar"><div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div></div>
+    <pre><span class="tp">int</span> <span class="vr">n</span> <span class="op">=</span> <span class="num">1</span>;
+<span class="kw">while</span> (n <span class="op">&lt;=</span> <span class="num">5</span>) {
+    Console<span class="op">.</span><span class="fn">WriteLine</span>(n);
+    n<span class="op">++</span>;
+}
+<span class="cmt">// do-while example</span>
+<span class="kw">do</span> {
+    Console<span class="op">.</span><span class="fn">WriteLine</span>(<span class="str">"runs once!"</span>);
+} <span class="kw">while</span> (<span class="kw">false</span>);</pre>
+  </div>
+</div>
+<div class="block">
+  <div class="block-label task-lbl">⚡ Your Challenge</div>
+  <div class="task-box">
+    <div class="task-text">
+      Use a <code>while</code> loop to print powers of 2: <code>1, 2, 4, 8, 16, 32</code><br>
+      Start with <code>int power = 1;</code> and double it each iteration. Stop when <code>power > 32</code>.
+    </div>
+    <button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button>
+    <div class="hint-box">int power = 1;\nwhile (power <= 32) {\n    Console.WriteLine(power);\n    power *= 2;\n}</div>
+  </div>
+</div>`,
+      starter:`using System;\n\nclass Program {\n    static void Main() {\n        // Powers of 2 using while\n        \n    }\n}`,
+      check(c) {
+        const hasWhile = /while\s*\(/.test(c);
+        const hasPow   = /power\s*\*=\s*2|power\s*=\s*power\s*\*\s*2/.test(c);
+        const hasPrint = /Console\.WriteLine/.test(c);
+        if (!hasWhile) return { ok:false, msg:'Use a while loop.' };
+        if (!hasPow)   return { ok:false, msg:'Double power each iteration: power *= 2;' };
+        return { ok:true, out:'1\n2\n4\n8\n16\n32' };
+      }
+    },
+    {
+      title:'foreach Loop',
+      step:'STEP 3', xp:80,
+      question:`
+<div class="block">
+  <div class="block-label concept-lbl">Concept</div>
+  <div class="concept-text">
+    <code>foreach</code> is the cleanest way to iterate over a collection. No index needed — C# handles it automatically.
+  </div>
+</div>
+<div class="block">
+  <div class="block-label syntax-lbl">Example</div>
+  <div class="code-example">
+    <div class="code-example-bar"><div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div></div>
+    <pre><span class="tp">string</span>[] <span class="vr">langs</span> <span class="op">=</span> { <span class="str">"C#"</span>, <span class="str">"Java"</span>, <span class="str">"Python"</span> };
+<span class="kw">foreach</span> (<span class="tp">string</span> <span class="vr">lang</span> <span class="kw">in</span> langs) {
+    Console<span class="op">.</span><span class="fn">WriteLine</span>(lang);
+}</pre>
+  </div>
+</div>
+<div class="block">
+  <div class="block-label task-lbl">⚡ Your Challenge</div>
+  <div class="task-box">
+    <div class="task-text">
+      Create an array: <code>int[] nums = {3, 6, 9, 12, 15};</code><br>
+      Use <code>foreach</code> to print each number squared (e.g. <code>3 squared = 9</code>).
+    </div>
+    <button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button>
+    <div class="hint-box">int[] nums = {3, 6, 9, 12, 15};\nforeach (int n in nums) {\n    Console.WriteLine($"{n} squared = {n * n}");\n}</div>
+  </div>
+</div>`,
+      starter:`using System;\n\nclass Program {\n    static void Main() {\n        int[] nums = {3, 6, 9, 12, 15};\n        // foreach loop here\n        \n    }\n}`,
+      check(c) {
+        const hasForeach = /foreach\s*\(\s*(int|var)\s+\w+\s+in\s+nums\s*\)/.test(c);
+        const hasSquare  = /n\s*\*\s*n|\w+\s*\*\s*\w+/.test(c);
+        const hasPrint   = /Console\.WriteLine/.test(c);
+        if (!hasForeach) return { ok:false, msg:'Write: foreach (int n in nums) { ... }' };
+        if (!hasSquare)  return { ok:false, msg:'Compute n * n inside the loop.' };
+        return { ok:true, out:'3 squared = 9\n6 squared = 36\n9 squared = 81\n12 squared = 144\n15 squared = 225' };
+      }
+    }
+  ]
+},
+
+// ── 5. METHODS ────────────────────────────────────────────
+{
+  id:'methods', name:'Methods', icon:'⚙️', topic:'FUNCTIONS',
+  steps:[
+    {
+      title:'Defining Methods',
+      step:'STEP 1', xp:90,
+      question:`
+<div class="block">
+  <div class="block-label concept-lbl">Concept</div>
+  <div class="concept-text">
+    A <strong>method</strong> is a named, reusable block of code. In C#, methods belong to a class and have a <em>return type</em>, <em>name</em>, and optional <em>parameters</em>.
+  </div>
+</div>
+<div class="block">
+  <div class="block-label syntax-lbl">Example</div>
+  <div class="code-example">
+    <div class="code-example-bar"><div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div></div>
+    <pre><span class="kw">static</span> <span class="tp">int</span> <span class="fn">Add</span>(<span class="tp">int</span> <span class="vr">a</span>, <span class="tp">int</span> <span class="vr">b</span>) {
+    <span class="kw">return</span> a <span class="op">+</span> b;
+}
+
+<span class="kw">static</span> <span class="kw">void</span> <span class="fn">Greet</span>(<span class="tp">string</span> <span class="vr">name</span>) {
+    Console<span class="op">.</span><span class="fn">WriteLine</span>($<span class="str">"Hello, {name}!"</span>);
+}
+
+<span class="cmt">// In Main:</span>
+<span class="fn">Greet</span>(<span class="str">"World"</span>);
+Console<span class="op">.</span><span class="fn">WriteLine</span>(<span class="fn">Add</span>(<span class="num">3</span>, <span class="num">4</span>));</pre>
+  </div>
+</div>
+<div class="block">
+  <div class="block-label task-lbl">⚡ Your Challenge</div>
+  <div class="task-box">
+    <div class="task-text">
+      Write a method <code>static int Multiply(int a, int b)</code> that returns <code>a * b</code>.<br>
+      In <code>Main()</code>, call <code>Multiply(6, 7)</code> and print the result.
+    </div>
+    <button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button>
+    <div class="hint-box">static int Multiply(int a, int b) {\n    return a * b;\n}\n// In Main:\nConsole.WriteLine(Multiply(6, 7));</div>
+  </div>
+</div>`,
+      starter:`using System;\n\nclass Program {\n    // Write Multiply method here\n    \n    static void Main() {\n        // Call Multiply(6, 7) and print\n        \n    }\n}`,
+      check(c) {
+        const hasMethod = /static\s+int\s+Multiply\s*\(\s*int\s+\w+\s*,\s*int\s+\w+\s*\)/.test(c);
+        const hasReturn = /return\s+\w+\s*\*\s*\w+/.test(c);
+        const hasCall   = /Multiply\s*\(\s*6\s*,\s*7\s*\)/.test(c);
+        const hasPrint  = /Console\.WriteLine\s*\(.*Multiply/.test(c) || /Console\.WriteLine\s*\(\s*42\s*\)/.test(c);
+        if (!hasMethod) return { ok:false, msg:'Define: static int Multiply(int a, int b) { ... }' };
+        if (!hasReturn) return { ok:false, msg:'Return a * b inside Multiply.' };
+        if (!hasCall)   return { ok:false, msg:'Call Multiply(6, 7) in Main.' };
+        return { ok:true, out:'42' };
+      }
+    },
+    {
+      title:'Optional & Named Parameters',
+      step:'STEP 2', xp:95,
+      question:`
+<div class="block">
+  <div class="block-label concept-lbl">Concept</div>
+  <div class="concept-text">
+    <strong>Optional parameters</strong> have default values — the caller can skip them.<br>
+    <strong>Named arguments</strong> let you pass args in any order using the param name.
+  </div>
+</div>
+<div class="block">
+  <div class="block-label syntax-lbl">Example</div>
+  <div class="code-example">
+    <div class="code-example-bar"><div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div></div>
+    <pre><span class="kw">static</span> <span class="tp">string</span> <span class="fn">Greet</span>(<span class="tp">string</span> <span class="vr">name</span>, <span class="tp">string</span> <span class="vr">prefix</span> <span class="op">=</span> <span class="str">"Hello"</span>) {
+    <span class="kw">return</span> $<span class="str">"{prefix}, {name}!"</span>;
+}
+Console<span class="op">.</span><span class="fn">WriteLine</span>(<span class="fn">Greet</span>(<span class="str">"Ada"</span>));             <span class="cmt">// Hello, Ada!</span>
+Console<span class="op">.</span><span class="fn">WriteLine</span>(<span class="fn">Greet</span>(<span class="str">"Ada"</span>, <span class="str">"Hey"</span>));       <span class="cmt">// Hey, Ada!</span>
+Console<span class="op">.</span><span class="fn">WriteLine</span>(<span class="fn">Greet</span>(prefix:<span class="str">"Yo"</span>, name:<span class="str">"Dev"</span>)); <span class="cmt">// Yo, Dev!</span></pre>
+  </div>
+</div>
+<div class="block">
+  <div class="block-label task-lbl">⚡ Your Challenge</div>
+  <div class="task-box">
+    <div class="task-text">
+      Write <code>static int Power(int base, int exp = 2)</code> that returns <code>base</code> raised to <code>exp</code>.<br>
+      Call it as <code>Power(5)</code> → should return 25. Print the result.
+    </div>
+    <button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button>
+    <div class="hint-box">static int Power(int b, int exp = 2) {\n    int result = 1;\n    for (int i = 0; i < exp; i++) result *= b;\n    return result;\n}\nConsole.WriteLine(Power(5));</div>
+  </div>
+</div>`,
+      starter:`using System;\n\nclass Program {\n    // Write Power method here\n    \n    static void Main() {\n        Console.WriteLine(Power(5));\n    }\n}`,
+      check(c) {
+        const hasMethod = /static\s+int\s+Power\s*\(/.test(c);
+        const hasDefault = /exp\s*=\s*2/.test(c);
+        const hasLogic = /result\s*\*=|Math\.Pow|\*\s*\w+/.test(c);
+        if (!hasMethod)  return { ok:false, msg:'Define: static int Power(int b, int exp = 2) { ... }' };
+        if (!hasDefault) return { ok:false, msg:'Set default: int exp = 2' };
+        if (!hasLogic)   return { ok:false, msg:'Implement the power calculation (loop or Math.Pow).' };
+        return { ok:true, out:'25' };
+      }
+    }
+  ]
+},
+
+// ── 6. ARRAYS ─────────────────────────────────────────────
+{
+  id:'arrays', name:'Arrays', icon:'📐', topic:'COLLECTIONS',
+  steps:[
+    {
+      title:'1D Arrays',
+      step:'STEP 1', xp:85,
+      question:`
+<div class="block">
+  <div class="block-label concept-lbl">Concept</div>
+  <div class="concept-text">
+    An <strong>array</strong> stores a fixed-size sequence of same-type elements. In C#, arrays are 0-indexed and their size is set at creation time.
+  </div>
+</div>
+<div class="block">
+  <div class="block-label syntax-lbl">Example</div>
+  <div class="code-example">
+    <div class="code-example-bar"><div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div></div>
+    <pre><span class="tp">int</span>[] <span class="vr">scores</span> <span class="op">=</span> { <span class="num">85</span>, <span class="num">92</span>, <span class="num">78</span>, <span class="num">95</span>, <span class="num">88</span> };
+Console<span class="op">.</span><span class="fn">WriteLine</span>(scores[<span class="num">0</span>]);        <span class="cmt">// 85</span>
+Console<span class="op">.</span><span class="fn">WriteLine</span>(scores.<span class="vr">Length</span>);   <span class="cmt">// 5</span>
+scores[<span class="num">2</span>] <span class="op">=</span> <span class="num">99</span>;                      <span class="cmt">// modify</span>
+Array<span class="op">.</span><span class="fn">Sort</span>(scores);                   <span class="cmt">// sort</span></pre>
+  </div>
+</div>
+<div class="block">
+  <div class="block-label task-lbl">⚡ Your Challenge</div>
+  <div class="task-box">
+    <div class="task-text">
+      Declare <code>string[] fruits = {"Apple", "Mango", "Banana", "Pawpaw"};</code><br>
+      Print the <strong>length</strong> of the array.<br>
+      Print the <strong>last element</strong> using <code>fruits[fruits.Length - 1]</code>.
+    </div>
+    <button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button>
+    <div class="hint-box">string[] fruits = {"Apple","Mango","Banana","Pawpaw"};\nConsole.WriteLine(fruits.Length);\nConsole.WriteLine(fruits[fruits.Length - 1]);</div>
+  </div>
+</div>`,
+      starter:`using System;\n\nclass Program {\n    static void Main() {\n        // Array operations\n        \n    }\n}`,
+      check(c) {
+        const hasArr  = /string\[\]\s+fruits/.test(c) || /var\s+fruits\s*=\s*new\s+string/.test(c);
+        const hasLen  = /fruits\.Length/.test(c);
+        const hasLast = /fruits\[fruits\.Length\s*-\s*1\]/.test(c) || /fruits\[3\]/.test(c);
+        if (!hasArr)  return { ok:false, msg:'Declare: string[] fruits = {...};' };
+        if (!hasLen)  return { ok:false, msg:'Print fruits.Length.' };
+        if (!hasLast) return { ok:false, msg:'Print the last element using fruits[fruits.Length - 1].' };
+        return { ok:true, out:'4\nPawpaw' };
+      }
+    }
+  ]
+},
+
+// ── 7. CLASSES & OOP ──────────────────────────────────────
+{
+  id:'oop', name:'OOP & Classes', icon:'🏛️', topic:'OOP',
+  steps:[
+    {
+      title:'Class & Constructor',
+      step:'STEP 1', xp:110,
+      question:`
+<div class="block">
+  <div class="block-label concept-lbl">Concept</div>
+  <div class="concept-text">
+    A <strong>class</strong> is the blueprint for objects. It defines <em>fields</em> (data) and <em>methods</em> (behavior). A <strong>constructor</strong> initializes a new object.
+  </div>
+</div>
+<div class="block">
+  <div class="block-label syntax-lbl">Example</div>
+  <div class="code-example">
+    <div class="code-example-bar"><div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div></div>
+    <pre><span class="kw">class</span> <span class="tp">Car</span> {
+    <span class="kw">public</span> <span class="tp">string</span> <span class="vr">Brand</span>;
+    <span class="kw">public</span> <span class="tp">int</span> <span class="vr">Year</span>;
+
+    <span class="kw">public</span> <span class="fn">Car</span>(<span class="tp">string</span> <span class="vr">brand</span>, <span class="tp">int</span> <span class="vr">year</span>) {
+        Brand <span class="op">=</span> brand;
+        Year <span class="op">=</span> year;
+    }
+    <span class="kw">public</span> <span class="kw">void</span> <span class="fn">Describe</span>() {
+        Console<span class="op">.</span><span class="fn">WriteLine</span>($<span class="str">"{Year} {Brand}"</span>);
+    }
+}
+<span class="kw">var</span> <span class="vr">c</span> <span class="op">=</span> <span class="kw">new</span> <span class="tp">Car</span>(<span class="str">"Tesla"</span>, <span class="num">2024</span>);
+c<span class="op">.</span><span class="fn">Describe</span>();</pre>
+  </div>
+</div>
+<div class="block">
+  <div class="block-label task-lbl">⚡ Your Challenge</div>
+  <div class="task-box">
+    <div class="task-text">
+      Create a class <code>Animal</code> with <code>public string Name</code> and <code>public string Sound</code>.<br>
+      Add a constructor and a method <code>Speak()</code> that prints <code>"[Name] says [Sound]!"</code>.<br>
+      Instantiate <code>Animal("Dog", "Woof")</code> and call <code>Speak()</code>.
+    </div>
+    <button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button>
+    <div class="hint-box">class Animal {\n    public string Name;\n    public string Sound;\n    public Animal(string name, string sound) {\n        Name = name; Sound = sound;\n    }\n    public void Speak() => Console.WriteLine($"{Name} says {Sound}!");\n}</div>
+  </div>
+</div>`,
+      starter:`using System;\n\n// Define Animal class here\n\nclass Program {\n    static void Main() {\n        var a = new Animal("Dog", "Woof");\n        a.Speak();\n    }\n}`,
+      check(c) {
+        const hasClass  = /class\s+Animal/.test(c);
+        const hasName   = /public\s+(string\s+Name|string\s+name)/.test(c);
+        const hasCtor   = /public\s+Animal\s*\(/.test(c);
+        const hasSpeak  = /public\s+(void\s+Speak|string\s+Speak)/.test(c) || /void\s+Speak/.test(c);
+        const hasNew    = /new\s+Animal\s*\(\s*["']Dog["']/.test(c);
+        if (!hasClass)  return { ok:false, msg:'Define: class Animal { ... }' };
+        if (!hasName)   return { ok:false, msg:'Add: public string Name;' };
+        if (!hasCtor)   return { ok:false, msg:'Add a constructor: public Animal(string name, string sound)' };
+        if (!hasSpeak)  return { ok:false, msg:'Add a public void Speak() method.' };
+        if (!hasNew)    return { ok:false, msg:'Instantiate: new Animal("Dog", "Woof")' };
+        return { ok:true, out:'Dog says Woof!' };
+      }
+    },
+    {
+      title:'Properties & Encapsulation',
+      step:'STEP 2', xp:115,
+      question:`
+<div class="block">
+  <div class="block-label concept-lbl">Concept</div>
+  <div class="concept-text">
+    <strong>Properties</strong> are smart fields with <code>get</code> and <code>set</code> accessors. They enforce <em>encapsulation</em> — controlling how data is read/written.
+  </div>
+</div>
+<div class="block">
+  <div class="block-label syntax-lbl">Example</div>
+  <div class="code-example">
+    <div class="code-example-bar"><div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div></div>
+    <pre><span class="kw">class</span> <span class="tp">Person</span> {
+    <span class="kw">private</span> <span class="tp">int</span> <span class="vr">_age</span>;
+    <span class="kw">public</span> <span class="tp">int</span> Age {
+        <span class="kw">get</span> { <span class="kw">return</span> _age; }
+        <span class="kw">set</span> { <span class="kw">if</span> (value <span class="op">>=</span> <span class="num">0</span>) _age <span class="op">=</span> value; }
+    }
+    <span class="cmt">// Auto-property shorthand:</span>
+    <span class="kw">public</span> <span class="tp">string</span> Name { <span class="kw">get</span>; <span class="kw">set</span>; }
+}</pre>
+  </div>
+</div>
+<div class="block">
+  <div class="block-label task-lbl">⚡ Your Challenge</div>
+  <div class="task-box">
+    <div class="task-text">
+      Create a class <code>Circle</code> with:<br>
+      • Private <code>double _radius</code><br>
+      • Public property <code>Radius</code> that validates: radius must be &gt; 0<br>
+      • Auto-property: <code>public string Color { get; set; }</code><br>
+      • Property <code>Area</code> (get only) → returns <code>Math.PI * _radius * _radius</code><br>
+      Set Radius to 5, print Area.
+    </div>
+    <button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button>
+    <div class="hint-box">class Circle {\n    private double _radius;\n    public double Radius {\n        get => _radius;\n        set { if (value > 0) _radius = value; }\n    }\n    public string Color { get; set; }\n    public double Area => Math.PI * _radius * _radius;\n}</div>
+  </div>
+</div>`,
+      starter:`using System;\n\n// Define Circle class here\n\nclass Program {\n    static void Main() {\n        var c = new Circle();\n        c.Radius = 5;\n        Console.WriteLine(Math.Round(c.Area, 2));\n    }\n}`,
+      check(c) {
+        const hasClass  = /class\s+Circle/.test(c);
+        const hasPvt    = /private\s+double\s+_radius/.test(c);
+        const hasProp   = /public\s+double\s+Radius/.test(c);
+        const hasArea   = /public\s+double\s+Area/.test(c) || /Area\s*=>/.test(c);
+        const hasPi     = /Math\.PI/.test(c);
+        if (!hasClass) return { ok:false, msg:'Define class Circle.' };
+        if (!hasPvt)   return { ok:false, msg:'Add: private double _radius;' };
+        if (!hasProp)  return { ok:false, msg:'Add public property Radius with get/set.' };
+        if (!hasArea)  return { ok:false, msg:'Add Area property using Math.PI.' };
+        return { ok:true, out:'78.54' };
+      }
+    },
+    {
+      title:'Inheritance',
+      step:'STEP 3', xp:120,
+      question:`
+<div class="block">
+  <div class="block-label concept-lbl">Concept</div>
+  <div class="concept-text">
+    <strong>Inheritance</strong> allows a class to <em>extend</em> another using <code>:</code>. The child class inherits all public/protected members and can override virtual methods.
+  </div>
+</div>
+<div class="block">
+  <div class="block-label syntax-lbl">Example</div>
+  <div class="code-example">
+    <div class="code-example-bar"><div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div></div>
+    <pre><span class="kw">class</span> <span class="tp">Shape</span> {
+    <span class="kw">public virtual</span> <span class="kw">void</span> <span class="fn">Draw</span>() <span class="op">=></span> Console<span class="op">.</span><span class="fn">WriteLine</span>(<span class="str">"Drawing shape"</span>);
+}
+<span class="kw">class</span> <span class="tp">Circle</span> : <span class="tp">Shape</span> {
+    <span class="kw">public override void</span> <span class="fn">Draw</span>() <span class="op">=></span> Console<span class="op">.</span><span class="fn">WriteLine</span>(<span class="str">"Drawing circle"</span>);
+}
+<span class="tp">Shape</span> <span class="vr">s</span> <span class="op">=</span> <span class="kw">new</span> <span class="tp">Circle</span>();
+s<span class="op">.</span><span class="fn">Draw</span>(); <span class="cmt">// Drawing circle (polymorphism!)</span></pre>
+  </div>
+</div>
+<div class="block">
+  <div class="block-label task-lbl">⚡ Your Challenge</div>
+  <div class="task-box">
+    <div class="task-text">
+      Create base class <code>Vehicle</code> with <code>public virtual void Move()</code> printing <code>"Vehicle moves"</code>.<br>
+      Create <code>Bicycle : Vehicle</code> that overrides <code>Move()</code> to print <code>"Bicycle pedals"</code>.<br>
+      Create a <code>Bicycle</code> and call <code>Move()</code>.
+    </div>
+    <button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button>
+    <div class="hint-box">class Vehicle {\n    public virtual void Move() => Console.WriteLine("Vehicle moves");\n}\nclass Bicycle : Vehicle {\n    public override void Move() => Console.WriteLine("Bicycle pedals");\n}</div>
+  </div>
+</div>`,
+      starter:`using System;\n\n// Define Vehicle and Bicycle classes\n\nclass Program {\n    static void Main() {\n        var b = new Bicycle();\n        b.Move();\n    }\n}`,
+      check(c) {
+        const hasVehicle = /class\s+Vehicle/.test(c);
+        const hasBicycle = /class\s+Bicycle\s*:\s*Vehicle/.test(c);
+        const hasVirtual = /virtual/.test(c);
+        const hasOverride = /override/.test(c);
+        const hasPedal   = /"Bicycle pedals"/.test(c);
+        if (!hasVehicle)  return { ok:false, msg:'Define class Vehicle with virtual void Move().' };
+        if (!hasBicycle)  return { ok:false, msg:'Define class Bicycle : Vehicle { ... }' };
+        if (!hasOverride) return { ok:false, msg:'Override Move() in Bicycle with override keyword.' };
+        if (!hasPedal)    return { ok:false, msg:'Print "Bicycle pedals" in Bicycle.Move().' };
+        return { ok:true, out:'Bicycle pedals' };
+      }
+    }
+  ]
+},
+
+// ── 8. INTERFACES ─────────────────────────────────────────
+{
+  id:'interfaces', name:'Interfaces', icon:'📋', topic:'CONTRACTS',
+  steps:[
+    {
+      title:'Defining & Implementing Interfaces',
+      step:'STEP 1', xp:110,
+      question:`
+<div class="block">
+  <div class="block-label concept-lbl">Concept</div>
+  <div class="concept-text">
+    An <strong>interface</strong> is a pure contract — it defines <em>what</em> a class must do, not <em>how</em>. Classes implement interfaces with <code>:</code>. A class can implement <strong>multiple</strong> interfaces.
+  </div>
+</div>
+<div class="block">
+  <div class="block-label syntax-lbl">Example</div>
+  <div class="code-example">
+    <div class="code-example-bar"><div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div></div>
+    <pre><span class="kw">interface</span> <span class="tp">IFlyable</span> {
+    <span class="kw">void</span> <span class="fn">Fly</span>();
+}
+<span class="kw">class</span> <span class="tp">Bird</span> : <span class="tp">IFlyable</span> {
+    <span class="kw">public void</span> <span class="fn">Fly</span>() <span class="op">=></span> Console<span class="op">.</span><span class="fn">WriteLine</span>(<span class="str">"Bird flaps wings"</span>);
+}
+<span class="tp">IFlyable</span> <span class="vr">f</span> <span class="op">=</span> <span class="kw">new</span> <span class="tp">Bird</span>();
+f<span class="op">.</span><span class="fn">Fly</span>();</pre>
+  </div>
+</div>
+<div class="block">
+  <div class="block-label task-lbl">⚡ Your Challenge</div>
+  <div class="task-box">
+    <div class="task-text">
+      Create interface <code>IGreetable</code> with method <code>void Greet()</code>.<br>
+      Create class <code>Robot</code> that implements it, printing <code>"Beep boop, hello human!"</code>.<br>
+      Instantiate and call <code>Greet()</code>.
+    </div>
+    <button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button>
+    <div class="hint-box">interface IGreetable {\n    void Greet();\n}\nclass Robot : IGreetable {\n    public void Greet() => Console.WriteLine("Beep boop, hello human!");\n}</div>
+  </div>
+</div>`,
+      starter:`using System;\n\n// Define IGreetable and Robot here\n\nclass Program {\n    static void Main() {\n        var r = new Robot();\n        r.Greet();\n    }\n}`,
+      check(c) {
+        const hasIface = /interface\s+IGreetable/.test(c);
+        const hasRobot = /class\s+Robot\s*:\s*IGreetable/.test(c);
+        const hasImpl  = /public\s+void\s+Greet\s*\(\s*\)/.test(c);
+        const hasMsg   = /"Beep boop, hello human!"/.test(c);
+        if (!hasIface) return { ok:false, msg:'Define: interface IGreetable { void Greet(); }' };
+        if (!hasRobot) return { ok:false, msg:'Implement: class Robot : IGreetable { ... }' };
+        if (!hasImpl)  return { ok:false, msg:'Implement public void Greet() in Robot.' };
+        if (!hasMsg)   return { ok:false, msg:'Print "Beep boop, hello human!" in Greet().' };
+        return { ok:true, out:'Beep boop, hello human!' };
+      }
+    }
+  ]
+},
+
+// ── 9. GENERICS ───────────────────────────────────────────
+{
+  id:'generics', name:'Generics', icon:'🧬', topic:'TYPE SAFETY',
+  steps:[
+    {
+      title:'Generic Methods & List<T>',
+      step:'STEP 1', xp:120,
+      question:`
+<div class="block">
+  <div class="block-label concept-lbl">Concept</div>
+  <div class="concept-text">
+    <strong>Generics</strong> let you write code that works with any type. <code>List&lt;T&gt;</code> is the most common generic — a dynamic array. <code>T</code> is a <em>type parameter</em> replaced at compile time.
+  </div>
+</div>
+<div class="block">
+  <div class="block-label syntax-lbl">Example</div>
+  <div class="code-example">
+    <div class="code-example-bar"><div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div></div>
+    <pre><span class="kw">using</span> System<span class="op">.</span>Collections<span class="op">.</span>Generic;
+
+<span class="kw">var</span> <span class="vr">names</span> <span class="op">=</span> <span class="kw">new</span> List<span class="op">&lt;</span><span class="tp">string</span><span class="op">&gt;</span>();
+names<span class="op">.</span><span class="fn">Add</span>(<span class="str">"Ada"</span>);
+names<span class="op">.</span><span class="fn">Add</span>(<span class="str">"Grace"</span>);
+<span class="fn">foreach</span> (<span class="kw">var</span> <span class="vr">n</span> <span class="kw">in</span> names)
+    Console<span class="op">.</span><span class="fn">WriteLine</span>(n);
+Console<span class="op">.</span><span class="fn">WriteLine</span>(names<span class="op">.</span>Count);</pre>
+  </div>
+</div>
+<div class="block">
+  <div class="block-label task-lbl">⚡ Your Challenge</div>
+  <div class="task-box">
+    <div class="task-text">
+      Create a <code>List&lt;int&gt;</code> called <code>numbers</code>.<br>
+      Add: 10, 20, 30, 40, 50.<br>
+      Remove 30 using <code>.Remove(30)</code>.<br>
+      Print <code>Count</code> and then all items with <code>foreach</code>.
+    </div>
+    <button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button>
+    <div class="hint-box">var numbers = new List&lt;int&gt;();\nnumbers.Add(10); numbers.Add(20);\nnumbers.Add(30); numbers.Add(40);\nnumbers.Add(50);\nnumbers.Remove(30);\nConsole.WriteLine(numbers.Count);\nforeach (var n in numbers) Console.WriteLine(n);</div>
+  </div>
+</div>`,
+      starter:`using System;\nusing System.Collections.Generic;\n\nclass Program {\n    static void Main() {\n        // List<int> operations\n        \n    }\n}`,
+      check(c) {
+        const hasList   = /List<int>|List<Int32>/.test(c);
+        const hasAdd    = (c.match(/\.Add\(/g)||[]).length >= 4;
+        const hasRemove = /\.Remove\s*\(\s*30\s*\)/.test(c);
+        const hasCount  = /\.Count/.test(c);
+        const hasForeach = /foreach/.test(c);
+        if (!hasList)   return { ok:false, msg:'Create: var numbers = new List<int>();' };
+        if (!hasAdd)    return { ok:false, msg:'Add at least 4 numbers using .Add().' };
+        if (!hasRemove) return { ok:false, msg:'Remove 30 using: numbers.Remove(30);' };
+        if (!hasCount)  return { ok:false, msg:'Print numbers.Count.' };
+        if (!hasForeach) return { ok:false, msg:'Iterate with foreach.' };
+        return { ok:true, out:'4\n10\n20\n40\n50' };
+      }
+    }
+  ]
+},
+
+// ── 10. EXCEPTION HANDLING ────────────────────────────────
+{
+  id:'exceptions', name:'Exceptions', icon:'🛡️', topic:'ERROR HANDLING',
+  steps:[
+    {
+      title:'try / catch / finally',
+      step:'STEP 1', xp:100,
+      question:`
+<div class="block">
+  <div class="block-label concept-lbl">Concept</div>
+  <div class="concept-text">
+    C# uses <code>try-catch-finally</code> to handle runtime errors gracefully. <code>catch</code> intercepts exceptions by type. <code>finally</code> always runs — perfect for cleanup.
+  </div>
+</div>
+<div class="block">
+  <div class="block-label syntax-lbl">Example</div>
+  <div class="code-example">
+    <div class="code-example-bar"><div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div></div>
+    <pre><span class="kw">try</span> {
+    <span class="tp">int</span> <span class="vr">result</span> <span class="op">=</span> <span class="num">10</span> <span class="op">/</span> <span class="num">0</span>;
+} <span class="kw">catch</span> (<span class="tp">DivideByZeroException</span> <span class="vr">ex</span>) {
+    Console<span class="op">.</span><span class="fn">WriteLine</span>($<span class="str">"Error: {ex.Message}"</span>);
+} <span class="kw">finally</span> {
+    Console<span class="op">.</span><span class="fn">WriteLine</span>(<span class="str">"Always runs!"</span>);
+}</pre>
+  </div>
+</div>
+<div class="block">
+  <div class="block-label task-lbl">⚡ Your Challenge</div>
+  <div class="task-box">
+    <div class="task-text">
+      Write a try-catch that:<br>
+      • Tries to parse <code>"abc"</code> to int using <code>int.Parse("abc")</code><br>
+      • Catches <code>FormatException</code> and prints <code>"Invalid number format"</code><br>
+      • Has a <code>finally</code> block that prints <code>"Done"</code>
+    </div>
+    <button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button>
+    <div class="hint-box">try {\n    int n = int.Parse("abc");\n} catch (FormatException ex) {\n    Console.WriteLine("Invalid number format");\n} finally {\n    Console.WriteLine("Done");\n}</div>
+  </div>
+</div>`,
+      starter:`using System;\n\nclass Program {\n    static void Main() {\n        // try-catch-finally\n        \n    }\n}`,
+      check(c) {
+        const hasTry    = /try\s*\{/.test(c);
+        const hasCatch  = /catch\s*\(\s*FormatException/.test(c) || /catch\s*\(\s*Exception/.test(c);
+        const hasMsg    = /"Invalid number format"/.test(c);
+        const hasFinally = /finally\s*\{/.test(c);
+        const hasDone   = /"Done"/.test(c);
+        if (!hasTry)     return { ok:false, msg:'Write a try { ... } block.' };
+        if (!hasCatch)   return { ok:false, msg:'Catch FormatException.' };
+        if (!hasMsg)     return { ok:false, msg:'Print "Invalid number format" in catch.' };
+        if (!hasFinally) return { ok:false, msg:'Add a finally { ... } block.' };
+        if (!hasDone)    return { ok:false, msg:'Print "Done" in finally.' };
+        return { ok:true, out:'Invalid number format\nDone' };
+      }
+    }
+  ]
+},
+
+// ── 11. LINQ ──────────────────────────────────────────────
+{
+  id:'linq', name:'LINQ', icon:'🔍', topic:'QUERIES',
+  steps:[
+    {
+      title:'LINQ Basics',
+      step:'STEP 1', xp:130,
+      question:`
+<div class="block">
+  <div class="block-label concept-lbl">Concept</div>
+  <div class="concept-text">
+    <strong>LINQ</strong> (Language Integrated Query) lets you query collections with a SQL-like syntax right in C#. Use <code>Where</code>, <code>Select</code>, <code>OrderBy</code>, <code>First</code>, and more.
+  </div>
+</div>
+<div class="block">
+  <div class="block-label syntax-lbl">Example</div>
+  <div class="code-example">
+    <div class="code-example-bar"><div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div></div>
+    <pre><span class="kw">using</span> System<span class="op">.</span>Linq;
+
+<span class="tp">int</span>[] <span class="vr">nums</span> <span class="op">=</span> { <span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>, <span class="num">4</span>, <span class="num">5</span>, <span class="num">6</span> };
+<span class="kw">var</span> <span class="vr">evens</span> <span class="op">=</span> nums<span class="op">.</span><span class="fn">Where</span>(n <span class="op">=></span> n <span class="op">%</span> <span class="num">2</span> <span class="op">==</span> <span class="num">0</span>);
+<span class="kw">var</span> <span class="vr">doubled</span> <span class="op">=</span> nums<span class="op">.</span><span class="fn">Select</span>(n <span class="op">=></span> n <span class="op">*</span> <span class="num">2</span>);
+<span class="tp">int</span> <span class="vr">total</span> <span class="op">=</span> nums<span class="op">.</span><span class="fn">Sum</span>();
+<span class="kw">foreach</span> (<span class="kw">var</span> <span class="vr">e</span> <span class="kw">in</span> evens) Console<span class="op">.</span><span class="fn">Write</span>(e <span class="op">+</span> <span class="str">" "</span>);</pre>
+  </div>
+</div>
+<div class="block">
+  <div class="block-label task-lbl">⚡ Your Challenge</div>
+  <div class="task-box">
+    <div class="task-text">
+      Given <code>int[] scores = {45, 72, 88, 33, 91, 60};</code><br>
+      Use LINQ to get all scores <strong>above 60</strong> into <code>var passing</code>.<br>
+      Print the <strong>count</strong> of passing scores, then print each one with <code>foreach</code>.
+    </div>
+    <button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button>
+    <div class="hint-box">var passing = scores.Where(s => s > 60);\nConsole.WriteLine(passing.Count());\nforeach (var s in passing) Console.WriteLine(s);</div>
+  </div>
+</div>`,
+      starter:`using System;\nusing System.Linq;\n\nclass Program {\n    static void Main() {\n        int[] scores = {45, 72, 88, 33, 91, 60};\n        // LINQ query\n        \n    }\n}`,
+      check(c) {
+        const hasWhere = /\.Where\s*\(/.test(c);
+        const hasLambda = /s\s*=>\s*s\s*>\s*60|\w+\s*=>\s*\w+\s*>\s*60/.test(c);
+        const hasCount  = /\.Count\(\)/.test(c);
+        const hasForeach = /foreach/.test(c);
+        if (!hasWhere)   return { ok:false, msg:'Use: scores.Where(s => s > 60)' };
+        if (!hasLambda)  return { ok:false, msg:'Lambda should filter: s => s > 60' };
+        if (!hasCount)   return { ok:false, msg:'Print passing.Count().' };
+        if (!hasForeach) return { ok:false, msg:'Print each passing score with foreach.' };
+        return { ok:true, out:'3\n72\n88\n91' };
+      }
+    }
+  ]
+},
+
+// ── 12. ASYNC / AWAIT ─────────────────────────────────────
+{
+  id:'async', name:'Async/Await', icon:'⚡', topic:'ASYNC',
+  steps:[
+    {
+      title:'async & await Basics',
+      step:'STEP 1', xp:140,
+      question:`
+<div class="block">
+  <div class="block-label concept-lbl">Concept</div>
+  <div class="concept-text">
+    <strong>async/await</strong> makes asynchronous code read like synchronous code. <code>Task</code> represents an async operation. Prefix with <code>async</code> and use <code>await</code> inside.
+  </div>
+</div>
+<div class="block">
+  <div class="block-label syntax-lbl">Example</div>
+  <div class="code-example">
+    <div class="code-example-bar"><div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div></div>
+    <pre><span class="kw">using</span> System<span class="op">.</span>Threading<span class="op">.</span>Tasks;
+
+<span class="kw">static async</span> <span class="tp">Task</span> <span class="fn">FetchData</span>() {
+    Console<span class="op">.</span><span class="fn">WriteLine</span>(<span class="str">"Fetching..."</span>);
+    <span class="kw">await</span> Task<span class="op">.</span><span class="fn">Delay</span>(<span class="num">1000</span>); <span class="cmt">// simulates async work</span>
+    Console<span class="op">.</span><span class="fn">WriteLine</span>(<span class="str">"Data received!"</span>);
+}
+<span class="kw">await</span> <span class="fn">FetchData</span>();</pre>
+  </div>
+</div>
+<div class="block">
+  <div class="block-label task-lbl">⚡ Your Challenge</div>
+  <div class="task-box">
+    <div class="task-text">
+      Write an <code>async Task</code> method called <code>Compute</code> that:<br>
+      • Prints <code>"Computing..."</code><br>
+      • Awaits <code>Task.Delay(100)</code><br>
+      • Prints <code>"Result: 42"</code><br>
+      Call it with <code>await Compute();</code> in <code>Main</code>.
+    </div>
+    <button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button>
+    <div class="hint-box">static async Task Compute() {\n    Console.WriteLine("Computing...");\n    await Task.Delay(100);\n    Console.WriteLine("Result: 42");\n}\n// Main must be async too:\nstatic async Task Main() { await Compute(); }</div>
+  </div>
+</div>`,
+      starter:`using System;\nusing System.Threading.Tasks;\n\nclass Program {\n    // Write async Compute() method\n    \n    static async Task Main() {\n        await Compute();\n    }\n}`,
+      check(c) {
+        const hasAsync  = /async\s+Task\s+Compute/.test(c);
+        const hasDelay  = /await\s+Task\.Delay/.test(c);
+        const hasComputing = /"Computing\.\.\."/.test(c);
+        const hasResult = /"Result: 42"/.test(c);
+        if (!hasAsync)     return { ok:false, msg:'Define: static async Task Compute() { ... }' };
+        if (!hasDelay)     return { ok:false, msg:'Use: await Task.Delay(100);' };
+        if (!hasComputing) return { ok:false, msg:'Print "Computing..." before the delay.' };
+        if (!hasResult)    return { ok:false, msg:'Print "Result: 42" after the delay.' };
+        return { ok:true, out:'Computing...\nResult: 42' };
+      }
+    }
+  ]
+},
+
+// ── 13. DELEGATES & EVENTS ────────────────────────────────
+{
+  id:'delegates', name:'Delegates', icon:'📡', topic:'FUNCTIONAL',
+  steps:[
+    {
+      title:'Delegates & Lambda',
+      step:'STEP 1', xp:130,
+      question:`
+<div class="block">
+  <div class="block-label concept-lbl">Concept</div>
+  <div class="concept-text">
+    A <strong>delegate</strong> is a type-safe function pointer. <code>Func&lt;T,R&gt;</code> and <code>Action&lt;T&gt;</code> are built-in generic delegates. <strong>Lambda expressions</strong> (<code>=></code>) create anonymous functions inline.
+  </div>
+</div>
+<div class="block">
+  <div class="block-label syntax-lbl">Example</div>
+  <div class="code-example">
+    <div class="code-example-bar"><div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div></div>
+    <pre><span class="tp">Func</span><span class="op">&lt;</span><span class="tp">int</span>, <span class="tp">int</span><span class="op">&gt;</span> <span class="vr">square</span> <span class="op">=</span> x <span class="op">=></span> x <span class="op">*</span> x;
+<span class="tp">Action</span><span class="op">&lt;</span><span class="tp">string</span><span class="op">&gt;</span> <span class="vr">greet</span> <span class="op">=</span> name <span class="op">=></span> Console<span class="op">.</span><span class="fn">WriteLine</span>($<span class="str">"Hi {name}"</span>);
+
+Console<span class="op">.</span><span class="fn">WriteLine</span>(<span class="vr">square</span>(<span class="num">5</span>));  <span class="cmt">// 25</span>
+<span class="vr">greet</span>(<span class="str">"Dev"</span>);                   <span class="cmt">// Hi Dev</span></pre>
+  </div>
+</div>
+<div class="block">
+  <div class="block-label task-lbl">⚡ Your Challenge</div>
+  <div class="task-box">
+    <div class="task-text">
+      Create a <code>Func&lt;int, int, int&gt;</code> called <code>multiply</code> that returns <code>a * b</code>.<br>
+      Create an <code>Action&lt;string&gt;</code> called <code>shout</code> that prints the string in uppercase.<br>
+      Call both: <code>multiply(7, 6)</code> and <code>shout("hello")</code>.
+    </div>
+    <button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button>
+    <div class="hint-box">Func&lt;int, int, int&gt; multiply = (a, b) => a * b;\nAction&lt;string&gt; shout = s => Console.WriteLine(s.ToUpper());\nConsole.WriteLine(multiply(7, 6));\nshout("hello");</div>
+  </div>
+</div>`,
+      starter:`using System;\n\nclass Program {\n    static void Main() {\n        // Func and Action lambdas\n        \n    }\n}`,
+      check(c) {
+        const hasFunc   = /Func<int,\s*int,\s*int>\s+multiply/.test(c) || /Func<int, int, int>\s+multiply/.test(c);
+        const hasAction = /Action<string>\s+shout/.test(c);
+        const hasUpper  = /ToUpper/.test(c);
+        const hasCall   = /multiply\s*\(\s*7\s*,\s*6\s*\)/.test(c);
+        if (!hasFunc)   return { ok:false, msg:'Declare: Func<int, int, int> multiply = (a, b) => a * b;' };
+        if (!hasAction) return { ok:false, msg:'Declare: Action<string> shout = ...' };
+        if (!hasUpper)  return { ok:false, msg:'Use .ToUpper() in shout.' };
+        if (!hasCall)   return { ok:false, msg:'Call multiply(7, 6) and print result.' };
+        return { ok:true, out:'42\nHELLO' };
+      }
+    }
+  ]
+},
+
+// ── 14. NULLABLE & NULL COALESCING ────────────────────────
+{
+  id:'nullable', name:'Null Handling', icon:'🕳️', topic:'NULL SAFETY',
+  steps:[
+    {
+      title:'Nullable Types & ?? Operator',
+      step:'STEP 1', xp:110,
+      question:`
+<div class="block">
+  <div class="block-label concept-lbl">Concept</div>
+  <div class="concept-text">
+    Value types (<code>int</code>, <code>double</code>) can't normally be <code>null</code>. Add <code>?</code> to make them nullable: <code>int?</code>.<br>
+    <code>??</code> (null-coalescing) returns the right side when the left is null.<br>
+    <code>?.</code> (null-conditional) safely accesses a member without throwing.
+  </div>
+</div>
+<div class="block">
+  <div class="block-label syntax-lbl">Example</div>
+  <div class="code-example">
+    <div class="code-example-bar"><div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div></div>
+    <pre><span class="tp">int</span><span class="op">?</span> <span class="vr">age</span> <span class="op">=</span> <span class="kw">null</span>;
+<span class="tp">int</span> <span class="vr">result</span> <span class="op">=</span> age <span class="op">??</span> <span class="num">18</span>;       <span class="cmt">// 18</span>
+<span class="tp">string</span><span class="op">?</span> <span class="vr">name</span> <span class="op">=</span> <span class="kw">null</span>;
+Console<span class="op">.</span><span class="fn">WriteLine</span>(name<span class="op">?.</span>Length);   <span class="cmt">// null (no crash)</span>
+Console<span class="op">.</span><span class="fn">WriteLine</span>(name <span class="op">??</span> <span class="str">"Guest"</span>); <span class="cmt">// Guest</span></pre>
+  </div>
+</div>
+<div class="block">
+  <div class="block-label task-lbl">⚡ Your Challenge</div>
+  <div class="task-box">
+    <div class="task-text">
+      Declare <code>string? username = null;</code><br>
+      Use <code>??</code> to print <code>"Anonymous"</code> if it's null.<br>
+      Then assign <code>username = "Coder42";</code> and print the actual value using <code>??</code> again.
+    </div>
+    <button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button>
+    <div class="hint-box">string? username = null;\nConsole.WriteLine(username ?? "Anonymous");\nusername = "Coder42";\nConsole.WriteLine(username ?? "Anonymous");</div>
+  </div>
+</div>`,
+      starter:`using System;\n\nclass Program {\n    static void Main() {\n        // Nullable and ?? operator\n        \n    }\n}`,
+      check(c) {
+        const hasNull   = /string\?\s+username\s*=\s*null/.test(c);
+        const hasCoal   = /username\s*\?\?\s*"Anonymous"/.test(c);
+        const hasAssign = /username\s*=\s*"Coder42"/.test(c);
+        if (!hasNull)   return { ok:false, msg:'Declare: string? username = null;' };
+        if (!hasCoal)   return { ok:false, msg:'Use: username ?? "Anonymous"' };
+        if (!hasAssign) return { ok:false, msg:'Assign username = "Coder42"; then print again.' };
+        return { ok:true, out:'Anonymous\nCoder42' };
+      }
+    }
+  ]
+},
+
+// ── 15. RECORDS & PATTERN MATCHING ────────────────────────
+{
+  id:'modern', name:'Modern C#', icon:'🚀', topic:'C# 10+',
+  steps:[
+    {
+      title:'Records',
+      step:'STEP 1', xp:140,
+      question:`
+<div class="block">
+  <div class="block-label concept-lbl">Concept</div>
+  <div class="concept-text">
+    <strong>Records</strong> (C# 9+) are immutable, value-based reference types. Perfect for data objects. They auto-generate <code>Equals</code>, <code>ToString</code>, and more. Use <code>with</code> to create a modified copy.
+  </div>
+</div>
+<div class="block">
+  <div class="block-label syntax-lbl">Example</div>
+  <div class="code-example">
+    <div class="code-example-bar"><div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div></div>
+    <pre><span class="kw">record</span> <span class="tp">Point</span>(<span class="tp">int</span> <span class="vr">X</span>, <span class="tp">int</span> <span class="vr">Y</span>);
+
+<span class="kw">var</span> <span class="vr">p1</span> <span class="op">=</span> <span class="kw">new</span> <span class="tp">Point</span>(<span class="num">1</span>, <span class="num">2</span>);
+<span class="kw">var</span> <span class="vr">p2</span> <span class="op">=</span> p1 <span class="kw">with</span> { Y <span class="op">=</span> <span class="num">10</span> };
+Console<span class="op">.</span><span class="fn">WriteLine</span>(p1);  <span class="cmt">// Point { X = 1, Y = 2 }</span>
+Console<span class="op">.</span><span class="fn">WriteLine</span>(p2);  <span class="cmt">// Point { X = 1, Y = 10 }</span>
+Console<span class="op">.</span><span class="fn">WriteLine</span>(p1 <span class="op">==</span> p2); <span class="cmt">// False</span></pre>
+  </div>
+</div>
+<div class="block">
+  <div class="block-label task-lbl">⚡ Your Challenge</div>
+  <div class="task-box">
+    <div class="task-text">
+      Define a <code>record Person(string Name, int Age);</code><br>
+      Create <code>var alice = new Person("Alice", 30);</code><br>
+      Create <code>var older = alice with { Age = 31 };</code><br>
+      Print both records.
+    </div>
+    <button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button>
+    <div class="hint-box">record Person(string Name, int Age);\nvar alice = new Person("Alice", 30);\nvar older = alice with { Age = 31 };\nConsole.WriteLine(alice);\nConsole.WriteLine(older);</div>
+  </div>
+</div>`,
+      starter:`using System;\n\n// Define record here\n\nclass Program {\n    static void Main() {\n        // Create and modify records\n        \n    }\n}`,
+      check(c) {
+        const hasRecord = /record\s+Person\s*\(/.test(c);
+        const hasAlice  = /new\s+Person\s*\(\s*"Alice"\s*,\s*30\s*\)/.test(c);
+        const hasWith   = /with\s*\{/.test(c);
+        const hasPrint  = (c.match(/Console\.WriteLine/g)||[]).length >= 2;
+        if (!hasRecord) return { ok:false, msg:'Define: record Person(string Name, int Age);' };
+        if (!hasAlice)  return { ok:false, msg:'Create: var alice = new Person("Alice", 30);' };
+        if (!hasWith)   return { ok:false, msg:'Use: alice with { Age = 31 }' };
+        if (!hasPrint)  return { ok:false, msg:'Print both alice and older.' };
+        return { ok:true, out:'Person { Name = Alice, Age = 30 }\nPerson { Name = Alice, Age = 31 }' };
+      }
+    },
+    {
+      title:'Pattern Matching',
+      step:'STEP 2', xp:145,
+      question:`
+<div class="block">
+  <div class="block-label concept-lbl">Concept</div>
+  <div class="concept-text">
+    <strong>Pattern matching</strong> in C# lets you test a value's shape and type with <code>is</code>, <code>switch</code> expressions, and positional patterns — much more powerful than classic type checks.
+  </div>
+</div>
+<div class="block">
+  <div class="block-label syntax-lbl">Example</div>
+  <div class="code-example">
+    <div class="code-example-bar"><div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div></div>
+    <pre><span class="tp">object</span> <span class="vr">val</span> <span class="op">=</span> <span class="num">42</span>;
+<span class="tp">string</span> <span class="vr">result</span> <span class="op">=</span> val <span class="kw">switch</span> {
+    <span class="tp">int</span> n <span class="kw">when</span> n <span class="op">></span> <span class="num">0</span> <span class="op">=></span> <span class="str">"Positive int"</span>,
+    <span class="tp">string</span> s        <span class="op">=></span> $<span class="str">"String: {s}"</span>,
+    <span class="kw">null</span>             <span class="op">=></span> <span class="str">"Null"</span>,
+    _                <span class="op">=></span> <span class="str">"Something else"</span>
+};
+Console<span class="op">.</span><span class="fn">WriteLine</span>(result); <span class="cmt">// Positive int</span></pre>
+  </div>
+</div>
+<div class="block">
+  <div class="block-label task-lbl">⚡ Your Challenge</div>
+  <div class="task-box">
+    <div class="task-text">
+      Write a <strong>switch expression</strong> on <code>object shape = "circle"</code>:<br>
+      • <code>"circle"</code> → <code>"Round shape"</code><br>
+      • <code>"square"</code> → <code>"Four corners"</code><br>
+      • <code>_</code> → <code>"Unknown shape"</code><br>
+      Store in <code>string desc</code> and print it.
+    </div>
+    <button class="hint-toggle" onclick="toggleHint(this)">💡 Hint</button>
+    <div class="hint-box">object shape = "circle";\nstring desc = shape switch {\n    "circle" => "Round shape",\n    "square" => "Four corners",\n    _ => "Unknown shape"\n};\nConsole.WriteLine(desc);</div>
+  </div>
+</div>`,
+      starter:`using System;\n\nclass Program {\n    static void Main() {\n        object shape = "circle";\n        // switch expression\n        \n    }\n}`,
+      check(c) {
+        const hasSwitchExpr = /shape\s+switch\s*\{/.test(c);
+        const hasCircle     = /"circle"\s*=>\s*"Round shape"/.test(c);
+        const hasDefault    = /_\s*=>/.test(c);
+        const hasPrint      = /Console\.WriteLine\s*\(\s*desc\s*\)/.test(c) || /Console\.WriteLine/.test(c);
+        if (!hasSwitchExpr) return { ok:false, msg:'Use switch expression: shape switch { ... }' };
+        if (!hasCircle)     return { ok:false, msg:'"circle" => "Round shape" arm is missing.' };
+        if (!hasDefault)    return { ok:false, msg:'Add a default arm: _ => "Unknown shape"' };
+        return { ok:true, out:'Round shape' };
+      }
+    }
+  ]
+}
+
+]; // end curriculum
+
+// ═══════════════════════════════════════════════════════════
+//   STATE
+// ═══════════════════════════════════════════════════════════
+const S = {
+  ch: 0, step: 0,
+  xp: 0, streak: 0,
+  done: new Set(),
+  chDone: new Set(),
+  hinted: false
+};
+
+// ═══════════════════════════════════════════════════════════
+//   BOOT
+// ═══════════════════════════════════════════════════════════
+function boot() {
+  buildRail();
+  loadLesson();
+  refreshHud();
+}
+
+function buildRail() {
+  const rail = document.getElementById('rail');
+  rail.innerHTML = '';
+  curriculum.forEach((ch, i) => {
+    const t = document.createElement('div');
+    const locked = !unlocked(i);
+    t.className = 'ch-tab' +
+      (i === S.ch ? ' active' : '') +
+      (S.chDone.has(i) ? ' done' : '') +
+      (locked ? ' locked' : '');
+    t.innerHTML = `<span class="ch-icon">${ch.icon}</span>${ch.name}<span class="ch-num">${ch.steps.length}</span>`;
+    if (!locked) {
+      t.onclick = () => { S.ch = i; S.step = 0; buildRail(); loadLesson(); };
+    }
+    rail.appendChild(t);
+  });
+}
+
+function unlocked(i) {
+  return i === 0 || S.chDone.has(i - 1) || S.ch === i;
+}
+
+function loadLesson() {
+  const ch   = curriculum[S.ch];
+  const step = ch.steps[S.step];
+
+  document.getElementById('hdr-chapter').textContent = ch.name;
+  document.getElementById('hdr-steps').textContent   = `${S.step + 1} / ${ch.steps.length}`;
+  document.getElementById('b-step').textContent  = step.step;
+  document.getElementById('b-topic').textContent = ch.topic;
+  document.getElementById('l-title').textContent = step.title;
+  document.getElementById('l-body').innerHTML    = step.question;
+  document.getElementById('editor').value        = step.starter;
+  document.getElementById('console').innerHTML   = '<span class="c-dim">// Write your code and click Compile & Check...</span>';
+  document.getElementById('o-dot').className     = 'out-dot';
+
+  const pct = (S.step / ch.steps.length) * 100;
+  document.getElementById('prog-fill').style.width = pct + '%';
+
+  syncLines();
+}
+
+function refreshHud() {
+  document.getElementById('h-xp').textContent  = S.xp;
+  document.getElementById('h-str').textContent = S.streak;
+  document.getElementById('h-lv').textContent  = Math.floor(S.xp / 300) + 1;
+}
+
+// ═══════════════════════════════════════════════════════════
+//   EDITOR
+// ═══════════════════════════════════════════════════════════
+function tabHandle(e) {
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    const t = e.target, s = t.selectionStart, end = t.selectionEnd;
+    t.value = t.value.slice(0, s) + '    ' + t.value.slice(end);
+    t.selectionStart = t.selectionEnd = s + 4;
+    syncLines();
+  }
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+    e.preventDefault();
+    runCheck();
+  }
+}
+
+function syncLines() {
+  const ta = document.getElementById('editor');
+  const n  = ta.value.split('\n').length;
+  document.getElementById('lines').textContent = Array.from({length:n},(_,i)=>i+1).join('\n');
+  ta.onscroll = () => { document.getElementById('lines').scrollTop = ta.scrollTop; };
+}
+
+function resetCode() {
+  document.getElementById('editor').value = curriculum[S.ch].steps[S.step].starter;
+  document.getElementById('console').innerHTML = '<span class="c-dim">// Reset. Try again!</span>';
+  document.getElementById('o-dot').className = 'out-dot';
+  syncLines();
+}
+
+function toggleHint(btn) {
+  const box = btn.nextElementSibling;
+  box.classList.toggle('open');
+  btn.textContent = box.classList.contains('open') ? '🙈 Hide Hint' : '💡 Hint';
+  S.hinted = true;
+}
+
+// ═══════════════════════════════════════════════════════════
+//   RUN & CHECK
+// ═══════════════════════════════════════════════════════════
+function runCheck() {
+  const code = document.getElementById('editor').value;
+  const step = curriculum[S.ch].steps[S.step];
+  const dot  = document.getElementById('o-dot');
+  const con  = document.getElementById('console');
+
+  dot.className = 'out-dot running';
+  con.innerHTML = '<span class="c-info">// Compiling...</span>';
+
+  setTimeout(() => {
+    const r = step.check(code);
+    if (r.ok) {
+      dot.className = 'out-dot ok';
+      con.innerHTML = `<span class="c-ok">✓ Success!\n\n${r.out || ''}</span>`;
+
+      const key = `${S.ch}-${S.step}`;
+      if (!S.done.has(key)) {
+        const earned = S.hinted ? Math.floor(step.xp * 0.65) : step.xp;
+        S.xp += earned;
+        S.streak++;
+        S.done.add(key);
+        refreshHud();
+        showModal(true, r.out, earned);
+        spawnSparks();
+      } else {
+        showModal(true, r.out, 0);
+      }
+    } else {
+      dot.className = 'out-dot err';
+      con.innerHTML = `<span class="c-err">✗ Build failed\n\n${r.msg}</span>`;
+      S.streak = 0;
+      refreshHud();
+      shakePane();
+    }
+    S.hinted = false;
+  }, 600);
+}
+
+function shakePane() {
+  const p = document.querySelector('.editor-pane');
+  ['-8px','8px','-5px','5px','0'].forEach((x, i) => {
+    setTimeout(() => p.style.transform = `translateX(${x})`, i * 70);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+//   MODAL
+// ═══════════════════════════════════════════════════════════
+const glyphs   = ['🎯','🏆','⚡','🔥','💎','🚀','✨','🎖️'];
+const msgs_ok  = [
+  'Compiled and correct!',
+  'You\'re thinking in C#.',
+  'Clean code. Keep shipping.',
+  'That\'s exactly right.',
+  'Nailing it — one concept at a time.',
+  'The compiler is proud of you.'
+];
+
+function showModal(ok, out, earned) {
+  const ch   = curriculum[S.ch];
+  const isLast = S.step === ch.steps.length - 1;
+  const allDone = S.ch === curriculum.length - 1 && isLast;
+
+  document.getElementById('m-glyph').textContent = glyphs[Math.floor(Math.random() * glyphs.length)];
+  const hd = document.getElementById('m-head');
+  hd.textContent  = isLast ? (allDone ? '🏅 COMPLETE!' : `${ch.name} Mastered!`) : 'Build Passed!';
+  hd.className    = 'modal-heading ok';
+  document.getElementById('m-sub').textContent = allDone
+    ? 'You completed all 15 chapters of C# Forge. You\'re a C# engineer!'
+    : isLast
+      ? `${ch.name} chapter complete. Next chapter unlocked!`
+      : msgs_ok[Math.floor(Math.random() * msgs_ok.length)];
+
+  const xpEl = document.getElementById('m-xp');
+  xpEl.textContent = earned > 0 ? `+${earned} XP` : 'Already earned!';
+  xpEl.style.opacity = earned > 0 ? '1' : '0.4';
+
+  document.getElementById('modal').classList.add('open');
+}
+
+function advance() {
+  document.getElementById('modal').classList.remove('open');
+  const ch = curriculum[S.ch];
+  if (S.step < ch.steps.length - 1) {
+    S.step++;
+  } else {
+    S.chDone.add(S.ch);
+    if (S.ch < curriculum.length - 1) {
+      S.ch++;
+      S.step = 0;
+    }
+    buildRail();
+  }
+  loadLesson();
+}
+
+// ═══════════════════════════════════════════════════════════
+//   SPARKS
+// ═══════════════════════════════════════════════════════════
+function spawnSparks() {
+  const palette = ['#9b59ff','#22d3a8','#ff8c42','#ffd700','#38bdf8','#ff4081'];
+  const cx = window.innerWidth / 2, cy = window.innerHeight / 2;
+  for (let i = 0; i < 28; i++) {
+    const sp = document.createElement('div');
+    sp.className = 'spark';
+    const ang  = (i / 28) * Math.PI * 2;
+    const dist = 80 + Math.random() * 140;
+    sp.style.cssText = `left:${cx}px;top:${cy}px;background:${palette[i%palette.length]};--dx:${Math.cos(ang)*dist}px;--dy:${Math.sin(ang)*dist}px;animation-duration:${0.7+Math.random()*0.4}s`;
+    document.body.appendChild(sp);
+    setTimeout(() => sp.remove(), 1200);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//   KEYBOARD
+// ═══════════════════════════════════════════════════════════
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') runCheck();
+});
+
+boot();
+</script>
+</body>
+</html>
