@@ -1,0 +1,756 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LinuxQuest — Learn Linux & Unix by Doing | Complete Terminal Tutorial</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Space+Grotesk:wght@300;400;600;700&family=Unbounded:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --panel: #0f1424;
+    --border: #1e2a45;
+    --linux-green: #00ff87;
+    --linux-blue: #00b4ff;
+    --linux-red: #ff4444;
+    --linux-yellow: #ffe600;
+    --linux-orange: #f7a41d;
+    --success: #00ff87;
+    --error: #ff4444;
+    --text: #e8eaf6;
+    --muted: #5a6a8a;
+    --code-bg: #080c18;
+    --terminal-bg: #0c0f18;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    font-family: 'Space Grotesk', sans-serif;
+    color: var(--text);
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: linear-gradient(rgba(0,255,135,0.02) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(0,255,135,0.02) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 24px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(15,20,36,0.95);
+    backdrop-filter: blur(12px);
+    position: relative;
+    z-index: 10;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .logo {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 900;
+    font-size: 1.3rem;
+    background: linear-gradient(90deg, var(--linux-green), var(--linux-blue));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .logo span { background: linear-gradient(90deg, var(--linux-yellow), var(--linux-orange)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+  .donate-badge {
+    background: rgba(0,255,135,0.12);
+    border: 1px solid var(--linux-green);
+    border-radius: 40px;
+    padding: 6px 14px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--linux-green);
+    letter-spacing: 0.02em;
+  }
+  .donate-badge strong { color: white; font-family: monospace; }
+
+  .progress-bar-wrap {
+    flex: 1;
+    max-width: 400px;
+    min-width: 180px;
+  }
+  .progress-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    display: flex;
+    justify-content: space-between;
+  }
+  .progress-track {
+    height: 4px;
+    background: var(--border);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--linux-green), var(--linux-blue));
+    border-radius: 99px;
+    transition: width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .stats {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  .stat-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    background: var(--border);
+    padding: 5px 12px;
+    border-radius: 99px;
+  }
+  .stat-pill.xp { color: var(--linux-green); }
+  .stat-pill.streak { color: var(--linux-yellow); }
+  .stat-pill.level { color: var(--linux-blue); }
+
+  .chapter-nav {
+    display: flex;
+    gap: 0;
+    padding: 0 24px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(10,14,26,0.8);
+    flex-shrink: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .chapter-nav::-webkit-scrollbar { display: none; }
+  .chapter-tab {
+    padding: 10px 20px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .chapter-tab.active { color: var(--linux-green); border-bottom-color: var(--linux-green); }
+  .chapter-tab.done { color: var(--success); }
+  .chapter-tab.locked { opacity: 0.35; cursor: not-allowed; }
+
+  .main {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
+  }
+
+  .question-panel {
+    width: 45%;
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--panel);
+  }
+  .panel-header {
+    padding: 16px 20px 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+  .step-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 4px;
+    background: rgba(0,255,135,0.12);
+    color: var(--linux-green);
+    border: 1px solid rgba(0,255,135,0.3);
+  }
+  .lesson-title { font-family: 'Unbounded', sans-serif; font-size: 0.85rem; font-weight: 700; }
+
+  .question-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 20px;
+    scrollbar-width: thin;
+  }
+  .concept-block { margin-bottom: 24px; animation: slideIn 0.3s ease; }
+  @keyframes slideIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+  .concept-label {
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--linux-red);
+    margin-bottom: 8px;
+  }
+  .concept-text { font-size: 0.88rem; line-height: 1.7; color: #b8c5e0; }
+  .concept-text code, .example-block code {
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--code-bg);
+    color: var(--linux-yellow);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+  }
+  .example-block {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 16px 0;
+  }
+  .example-block pre {
+    padding: 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    color: #e2e8f0;
+  }
+  .terminal-demo {
+    background: var(--terminal-bg);
+    border: 1px solid var(--linux-green);
+    border-radius: 8px;
+    padding: 12px;
+    margin: 12px 0;
+    font-family: monospace;
+    font-size: 0.7rem;
+    color: var(--linux-green);
+  }
+  .task-block {
+    background: rgba(0,255,135,0.05);
+    border: 1px solid rgba(0,255,135,0.2);
+    border-radius: 10px;
+    padding: 16px;
+    margin-top: 16px;
+  }
+  .task-title {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--linux-green);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .hint-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 6px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.7rem;
+    margin-top: 12px;
+  }
+  .hint-reveal {
+    display: none;
+    margin-top: 12px;
+    padding: 12px;
+    background: rgba(0,255,135,0.05);
+    border-left: 3px solid var(--linux-green);
+    font-family: monospace;
+    font-size: 0.75rem;
+  }
+  .hint-reveal.show { display: block; }
+
+  .editor-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: var(--terminal-bg);
+    overflow: hidden;
+  }
+  .editor-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(15,20,36,0.8);
+  }
+  .file-tab {
+    font-family: monospace;
+    font-size: 0.75rem;
+    color: var(--linux-green);
+    background: rgba(0,255,135,0.1);
+    padding: 4px 14px;
+    border-radius: 4px;
+  }
+  .editor-actions { display: flex; gap: 10px; }
+  .run-btn {
+    background: linear-gradient(135deg, var(--linux-green), var(--linux-blue));
+    color: #000;
+    border: none;
+    padding: 6px 20px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  .reset-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 5px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .editor-wrap { display: flex; flex: 1; overflow: hidden; }
+  .line-nums {
+    padding: 16px 0;
+    text-align: right;
+    font-family: monospace;
+    font-size: 0.8rem;
+    line-height: 1.6;
+    color: var(--muted);
+    padding-right: 12px;
+    padding-left: 10px;
+    background: rgba(0,0,0,0.3);
+    border-right: 1px solid var(--border);
+    min-width: 48px;
+  }
+  #code-editor {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #eeffff;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    line-height: 1.6;
+    padding: 16px;
+    resize: none;
+    white-space: pre;
+    overflow: auto;
+  }
+  .output-panel {
+    height: 170px;
+    border-top: 1px solid var(--border);
+    background: #05080f;
+    display: flex;
+    flex-direction: column;
+  }
+  .output-header {
+    padding: 8px 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .output-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+  .output-dot.success { background: var(--success); }
+  .output-dot.error { background: var(--error); }
+  #output-area {
+    flex: 1;
+    padding: 10px 16px;
+    font-family: monospace;
+    font-size: 0.75rem;
+    overflow-y: auto;
+    white-space: pre-wrap;
+  }
+  .feedback-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    opacity: 0;
+    pointer-events: none;
+    transition: 0.2s;
+  }
+  .feedback-overlay.show { opacity: 1; pointer-events: all; }
+  .feedback-card {
+    background: var(--panel);
+    border-radius: 24px;
+    padding: 32px;
+    text-align: center;
+    max-width: 380px;
+    border: 1px solid var(--linux-green);
+  }
+  .continue-btn {
+    background: linear-gradient(135deg, var(--linux-green), var(--linux-blue));
+    border: none;
+    padding: 12px 28px;
+    border-radius: 40px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 16px;
+    width: 100%;
+    color: #000;
+  }
+  .particle {
+    position: fixed;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 1000;
+    animation: blast 0.8s ease-out forwards;
+  }
+  @keyframes blast {
+    0% { transform: translate(0,0) scale(1); opacity: 1; }
+    100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+  }
+  .command-prompt {
+    color: var(--linux-green);
+    font-weight: bold;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Linux<span>Quest</span></div>
+  <div class="donate-badge">🐧 Support Linux education — OPay: <strong>9072210193</strong> Paul</div>
+  <div class="progress-bar-wrap">
+    <div class="progress-label"><span id="chapter-name">Linux Basics</span><span id="step-counter">0/0</span></div>
+    <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+  </div>
+  <div class="stats">
+    <div class="stat-pill xp">⚡ <span id="xp-count">0</span> XP</div>
+    <div class="stat-pill streak">🔥 <span id="streak-count">0</span></div>
+    <div class="stat-pill level">Lv <span id="level-count">1</span></div>
+  </div>
+</header>
+
+<nav class="chapter-nav" id="chapter-nav"></nav>
+
+<div class="main">
+  <div class="question-panel">
+    <div class="panel-header"><div class="step-badge" id="step-badge">COMMAND</div><div class="lesson-title" id="lesson-title">Terminal Basics</div></div>
+    <div class="question-body" id="question-body"></div>
+  </div>
+  <div class="editor-panel">
+    <div class="editor-topbar"><div class="file-tab">🐚 terminal.sh</div><div class="editor-actions"><button class="reset-btn" onclick="resetCode()">↺ Reset</button><button class="run-btn" onclick="checkCode()">⏎ Execute Command</button></div></div>
+    <div class="editor-wrap"><div class="line-nums" id="line-nums">1</div><textarea id="code-editor" spellcheck="false" onkeydown="handleTab(event)" oninput="updateLineNums()" placeholder="$ type your command here"></textarea></div>
+    <div class="output-panel"><div class="output-header"><div class="output-dot" id="output-dot"></div>TERMINAL OUTPUT</div><div id="output-area"><span class="out-muted">// Enter Linux/Unix command and click Execute</span></div></div>
+  </div>
+</div>
+
+<div class="feedback-overlay" id="feedback-overlay"><div class="feedback-card"><span class="feedback-emoji" id="feedback-emoji">🐧</span><div class="feedback-title" id="feedback-title">Correct!</div><div class="feedback-msg" id="feedback-msg"></div><div id="xp-gained" style="color:var(--linux-green); margin:12px 0; font-weight:bold;"></div><button class="continue-btn" onclick="nextStep()">Next Command →</button></div></div>
+
+<script>
+// ============================================================
+// LINUX/UNIX CURRICULUM — from basic navigation to advanced shell scripting
+// Commands: ls, cd, pwd, cp, mv, rm, grep, awk, sed, chmod, ps, kill, cron, bash scripting
+// ============================================================
+
+const curriculum = [
+  { id: 'navigation', name: 'Navigation', icon: '📂', steps: [
+    { title: 'List Files', badge: 'ls', xp: 20,
+      question: `<div class="concept-block"><div class="concept-label">Listing Directory Contents</div><div class="concept-text">The <code>ls</code> command lists files and directories. <code>ls -la</code> shows all files including hidden ones with details.</div></div>
+      <div class="terminal-demo">$ ls -la<br>drwxr-xr-x  user  staff  4096 Jan 15 10:30 .<br>-rw-r--r--  user  staff   123 Jan 14 09:00 file.txt</div>
+      <div class="task-block"><div class="task-title">⚡ Task</div><div class="task-text">Write the command to list all files (including hidden) in long format.</div><button class="hint-btn" onclick="toggleHint(this)">💡 Hint</button><div class="hint-reveal">ls -la</div></div>`,
+      starterCode: `# List all files with details\n`,
+      check: (code) => { const ok = /^ls\s+-la\s*$/.test(code.trim()) || /^ls\s+-al\s*$/.test(code.trim()); return { ok, msg: ok ? '' : 'Use: ls -la' }; }
+    },
+    { title: 'Change Directory', badge: 'cd', xp: 20,
+      question: `<div class="concept-block"><div class="concept-label">Moving Around</div><div class="concept-text"><code>cd /path</code> changes directory. <code>cd ..</code> goes up one level. <code>cd ~</code> goes to home.</div></div>
+      <div class="task-block"><div class="task-title">⚡ Task</div><div class="task-text">Write the command to change to the parent directory.</div><button class="hint-btn" onclick="toggleHint(this)">💡 Hint</button><div class="hint-reveal">cd ..</div></div>`,
+      starterCode: `# Go to parent directory\n`,
+      check: (code) => { const ok = /^cd\s+\.\.\s*$/.test(code.trim()); return { ok, msg: 'Use: cd ..' }; }
+    },
+    { title: 'Print Working Directory', badge: 'pwd', xp: 15,
+      question: `<div class="concept-block"><div class="concept-label">Where am I?</div><div class="concept-text"><code>pwd</code> prints the absolute path of the current directory.</div></div>
+      <div class="task-block"><div class="task-title">⚡ Task</div><div class="task-text">Write the command to display your current directory path.</div><button class="hint-btn" onclick="toggleHint(this)">💡 Hint</button><div class="hint-reveal">pwd</div></div>`,
+      starterCode: `# Show current directory\n`,
+      check: (code) => { const ok = /^pwd\s*$/.test(code.trim()); return { ok, msg: 'Use: pwd' }; }
+    }
+  ]},
+  { id: 'fileops', name: 'File Operations', icon: '📝', steps: [
+    { title: 'Copy Files', badge: 'cp', xp: 25,
+      question: `<div class="concept-block"><div class="concept-label">Copying Files and Directories</div><div class="concept-text"><code>cp source destination</code> copies a file. Use <code>cp -r</code> for directories.</div></div>
+      <div class="task-block"><div class="task-title">⚡ Task</div><div class="task-text">Copy <code>file1.txt</code> to <code>file2.txt</code>.</div><button class="hint-btn" onclick="toggleHint(this)">💡 Hint</button><div class="hint-reveal">cp file1.txt file2.txt</div></div>`,
+      starterCode: `# Copy file1.txt to file2.txt\n`,
+      check: (code) => { const ok = /^cp\s+file1\.txt\s+file2\.txt\s*$/.test(code.trim()); return { ok, msg: 'Use: cp file1.txt file2.txt' }; }
+    },
+    { title: 'Move/Rename', badge: 'mv', xp: 25,
+      question: `<div class="concept-block"><div class="concept-label">Moving and Renaming</div><div class="concept-text"><code>mv oldname newname</code> renames. <code>mv file /path/</code> moves.</div></div>
+      <div class="task-block"><div class="task-title">⚡ Task</div><div class="task-text">Rename <code>old.txt</code> to <code>new.txt</code>.</div><button class="hint-btn" onclick="toggleHint(this)">💡 Hint</button><div class="hint-reveal">mv old.txt new.txt</div></div>`,
+      starterCode: `# Rename old.txt to new.txt\n`,
+      check: (code) => { const ok = /^mv\s+old\.txt\s+new\.txt\s*$/.test(code.trim()); return { ok, msg: 'Use: mv old.txt new.txt' }; }
+    },
+    { title: 'Remove Files', badge: 'rm', xp: 25,
+      question: `<div class="concept-block"><div class="concept-label">Deleting Safely</div><div class="concept-text"><code>rm file</code> removes a file. <code>rm -rf dir</code> removes directories (caution!).</div></div>
+      <div class="task-block"><div class="task-title">⚡ Task</div><div class="task-text">Delete a file named <code>temp.log</code>.</div><button class="hint-btn" onclick="toggleHint(this)">💡 Hint</button><div class="hint-reveal">rm temp.log</div></div>`,
+      starterCode: `# Delete temp.log\n`,
+      check: (code) => { const ok = /^rm\s+temp\.log\s*$/.test(code.trim()); return { ok, msg: 'Use: rm temp.log' }; }
+    }
+  ]},
+  { id: 'permissions', name: 'Permissions', icon: '🔐', steps: [
+    { title: 'Change Permissions', badge: 'chmod', xp: 40,
+      question: `<div class="concept-block"><div class="concept-label">Unix Permissions</div><div class="concept-text"><code>chmod 755 file</code> gives rwxr-xr-x. <code>chmod +x script.sh</code> makes executable.</div></div>
+      <div class="task-block"><div class="task-title">⚡ Task</div><div class="task-text">Make <code>script.sh</code> executable for the owner.</div><button class="hint-btn" onclick="toggleHint(this)">💡 Hint</button><div class="hint-reveal">chmod +x script.sh</div></div>`,
+      starterCode: `# Make script executable\n`,
+      check: (code) => { const ok = /^chmod\s+(\+x|755)\s+script\.sh\s*$/.test(code.trim()); return { ok, msg: 'Use: chmod +x script.sh' }; }
+    },
+    { title: 'Change Owner', badge: 'chown', xp: 45,
+      question: `<div class="concept-block"><div class="concept-label">Ownership</div><div class="concept-text"><code>chown user:group file</code> changes file owner and group.</div></div>
+      <div class="task-block"><div class="task-title">⚡ Task</div><div class="task-text">Change owner of <code>data.txt</code> to <code>john</code> and group to <code>staff</code>.</div><button class="hint-btn" onclick="toggleHint(this)">💡 Hint</button><div class="hint-reveal">chown john:staff data.txt</div></div>`,
+      starterCode: `# Change owner:group\n`,
+      check: (code) => { const ok = /^chown\s+john:staff\s+data\.txt\s*$/.test(code.trim()); return { ok, msg: 'Use: chown john:staff data.txt' }; }
+    }
+  ]},
+  { id: 'text-processing', name: 'Text Processing', icon: '✂️', steps: [
+    { title: 'Grep Search', badge: 'grep', xp: 50,
+      question: `<div class="concept-block"><div class="concept-label">Pattern Searching</div><div class="concept-text"><code>grep "pattern" file.txt</code> finds lines matching pattern. Use <code>-i</code> for case-insensitive.</div></div>
+      <div class="task-block"><div class="task-title">⚡ Task</div><div class="task-text">Search for "error" in <code>log.txt</code> (case-insensitive).</div><button class="hint-btn" onclick="toggleHint(this)">💡 Hint</button><div class="hint-reveal">grep -i "error" log.txt</div></div>`,
+      starterCode: `# Search for error\n`,
+      check: (code) => { const ok = /^grep\s+-i\s+["']error["']\s+log\.txt\s*$/.test(code.trim()); return { ok, msg: 'Use: grep -i "error" log.txt' }; }
+    },
+    { title: 'Awk', badge: 'awk', xp: 65,
+      question: `<div class="concept-block"><div class="concept-label">Text Processing Language</div><div class="concept-text"><code>awk '{print $1}' file.txt</code> prints first column. Great for structured data.</div></div>
+      <div class="task-block"><div class="task-title">⚡ Task</div><div class="task-text">Print the second column of <code>data.csv</code> (assume space/comma separated).</div><button class="hint-btn" onclick="toggleHint(this)">💡 Hint</button><div class="hint-reveal">awk '{print $2}' data.csv</div></div>`,
+      starterCode: `# Print second column\n`,
+      check: (code) => { const ok = /^awk\s+['"]\{print\s+\$2\}['"]\s+data\.csv\s*$/.test(code.trim()); return { ok, msg: "Use: awk '{print $2}' data.csv" }; }
+    },
+    { title: 'Sed Substitution', badge: 'sed', xp: 60,
+      question: `<div class="concept-block"><div class="concept-label">Stream Editor</div><div class="concept-text"><code>sed 's/old/new/g' file.txt</code> replaces text globally.</div></div>
+      <div class="task-block"><div class="task-title">⚡ Task</div><div class="task-text">Replace all occurrences of "foo" with "bar" in <code>text.txt</code>.</div><button class="hint-btn" onclick="toggleHint(this)">💡 Hint</button><div class="hint-reveal">sed 's/foo/bar/g' text.txt</div></div>`,
+      starterCode: `# Replace foo with bar\n`,
+      check: (code) => { const ok = /^sed\s+['"]s\/foo\/bar\/g['"]\s+text\.txt\s*$/.test(code.trim()); return { ok, msg: "Use: sed 's/foo/bar/g' text.txt" }; }
+    }
+  ]},
+  { id: 'processes', name: 'Process Management', icon: '⚙️', steps: [
+    { title: 'List Processes', badge: 'ps', xp: 40,
+      question: `<div class="concept-block"><div class="concept-label">View Running Processes</div><div class="concept-text"><code>ps aux</code> shows all processes. <code>ps -ef</code> is also common on Unix.</div></div>
+      <div class="task-block"><div class="task-title">⚡ Task</div><div class="task-text">List all running processes with detailed information.</div><button class="hint-btn" onclick="toggleHint(this)">💡 Hint</button><div class="hint-reveal">ps aux</div></div>`,
+      starterCode: `# List all processes\n`,
+      check: (code) => { const ok = /^ps\s+aux\s*$/.test(code.trim()) || /^ps\s+-ef\s*$/.test(code.trim()); return { ok, msg: 'Use: ps aux' }; }
+    },
+    { title: 'Kill Process', badge: 'kill', xp: 45,
+      question: `<div class="concept-block"><div class="concept-label">Terminating Processes</div><div class="concept-text"><code>kill -9 PID</code> forcefully terminates a process. <code>kill PID</code> sends TERM signal.</div></div>
+      <div class="task-block"><div class="task-title">⚡ Task</div><div class="task-text">Force kill process with PID 1234.</div><button class="hint-btn" onclick="toggleHint(this)">💡 Hint</button><div class="hint-reveal">kill -9 1234</div></div>`,
+      starterCode: `# Kill process 1234\n`,
+      check: (code) => { const ok = /^kill\s+-9\s+1234\s*$/.test(code.trim()); return { ok, msg: 'Use: kill -9 1234' }; }
+    },
+    { title: 'Top Command', badge: 'top', xp: 35,
+      question: `<div class="concept-block"><div class="concept-label">Real-time System Monitor</div><div class="concept-text"><code>top</code> shows real-time processes and system resource usage. <code>htop</code> is an enhanced version.</div></div>
+      <div class="task-block"><div class="task-title">⚡ Task</div><div class="task-text">Write the command to monitor system processes in real-time.</div><button class="hint-btn" onclick="toggleHint(this)">💡 Hint</button><div class="hint-reveal">top</div></div>`,
+      starterCode: `# Real-time process monitor\n`,
+      check: (code) => { const ok = /^top\s*$/.test(code.trim()) || /^htop\s*$/.test(code.trim()); return { ok, msg: 'Use: top' }; }
+    }
+  ]},
+  { id: 'redirection', name: 'Pipes & Redirection', icon: '⎸', steps: [
+    { title: 'Output Redirection', badge: '>', xp: 35,
+      question: `<div class="concept-block"><div class="concept-label">Redirecting Output</div><div class="concept-text"><code>command > file</code> overwrites, <code>command >> file</code> appends.</div></div>
+      <div class="task-block"><div class="task-title">⚡ Task</div><div class="task-text">Run <code>ls -la</code> and save the output to <code>listing.txt</code> (overwrite).</div><button class="hint-btn" onclick="toggleHint(this)">💡 Hint</button><div class="hint-reveal">ls -la > listing.txt</div></div>`,
+      starterCode: `# Redirect ls output\n`,
+      check: (code) => { const ok = /^ls\s+-la\s+>\s+listing\.txt\s*$/.test(code.trim()); return { ok, msg: 'Use: ls -la > listing.txt' }; }
+    },
+    { title: 'Pipes', badge: '|', xp: 50,
+      question: `<div class="concept-block"><div class="concept-label">Chaining Commands</div><div class="concept-text">Pipe <code>|</code> sends output of one command as input to another.</div></div>
+      <div class="task-block"><div class="task-title">⚡ Task</div><div class="task-text">Use <code>ps aux</code> and pipe to <code>grep</code> to find processes containing "nginx".</div><button class="hint-btn" onclick="toggleHint(this)">💡 Hint</button><div class="hint-reveal">ps aux | grep nginx</div></div>`,
+      starterCode: `# Find nginx processes\n`,
+      check: (code) => { const ok = /ps\s+aux\s*\|\s*grep\s+nginx/.test(code.trim()); return { ok, msg: 'Use: ps aux | grep nginx' }; }
+    }
+  ]},
+  { id: 'shell-scripting', name: 'Shell Scripting', icon: '📜', steps: [
+    { title: 'Hello World Script', badge: 'bash', xp: 55,
+      question: `<div class="concept-block"><div class="concept-label">Bash Scripting Basics</div><div class="concept-text">A shell script starts with <code>#!/bin/bash</code>. Use <code>echo</code> to print.</div></div>
+      <div class="task-block"><div class="task-title">⚡ Task</div><div class="task-text">Write a one-line bash script that prints "Hello Linux!".</div><button class="hint-btn" onclick="toggleHint(this)">💡 Hint</button><div class="hint-reveal">echo "Hello Linux!"</div></div>`,
+      starterCode: `# Print hello\n`,
+      check: (code) => { const ok = /echo\s+["']Hello Linux!["']/.test(code.trim()); return { ok, msg: 'Use: echo "Hello Linux!"' }; }
+    },
+    { title: 'Variables in Bash', badge: '$var', xp: 60,
+      question: `<div class="concept-block"><div class="concept-label">Shell Variables</div><div class="concept-text">Assign with <code>name=value</code> (no spaces). Access with <code>$name</code>.</div></div>
+      <div class="task-block"><div class="task-title">⚡ Task</div><div class="task-text">Create variable <code>GREETING="Hi there"</code> and echo it.</div><button class="hint-btn" onclick="toggleHint(this)">💡 Hint</button><div class="hint-reveal">GREETING="Hi there"; echo $GREETING</div></div>`,
+      starterCode: `# Variable and echo\n`,
+      check: (code) => { const ok = /GREETING\s*=\s*["']Hi there["']/.test(code) && /echo\s+\$GREETING/.test(code); return { ok, msg: 'Set GREETING and echo $GREETING' }; }
+    },
+    { title: 'For Loop', badge: 'for', xp: 70,
+      question: `<div class="concept-block"><div class="concept-label">Looping</div><div class="concept-text"><code>for i in {1..5}; do echo $i; done</code></div></div>
+      <div class="task-block"><div class="task-title">⚡ Task</div><div class="task-text">Write a for loop that prints numbers 1 through 5, each on a new line.</div><button class="hint-btn" onclick="toggleHint(this)">💡 Hint</button><div class="hint-reveal">for i in {1..5}; do echo $i; done</div></div>`,
+      starterCode: `# For loop 1-5\n`,
+      check: (code) => { const ok = /for\s+\w+\s+in\s+{1\.\.5}\s*;/.test(code) && /echo/.test(code); return { ok, msg: 'for i in {1..5}; do echo $i; done' }; }
+    }
+  ]},
+  { id: 'advanced', name: 'Advanced', icon: '🚀', steps: [
+    { title: 'Cron Jobs', badge: 'crontab', xp: 80,
+      question: `<div class="concept-block"><div class="concept-label">Scheduling Tasks</div><div class="concept-text"><code>crontab -e</code> edits cron jobs. Format: <code>* * * * * command</code> (min hour day month weekday).</div></div>
+      <div class="task-block"><div class="task-title">⚡ Task</div><div class="task-text">Write a cron expression that runs <code>/backup.sh</code> every day at 2:30 AM.</div><button class="hint-btn" onclick="toggleHint(this)">💡 Hint</button><div class="hint-reveal">30 2 * * * /backup.sh</div></div>`,
+      starterCode: `# Cron schedule for daily 2:30 AM\n`,
+      check: (code) => { const ok = /30\s+2\s+\*\s+\*\s+\*\s+\/backup\.sh/.test(code.trim()); return { ok, msg: '30 2 * * * /backup.sh' }; }
+    },
+    { title: 'Find Command', badge: 'find', xp: 65,
+      question: `<div class="concept-block"><div class="concept-label">Searching for Files</div><div class="concept-text"><code>find /path -name "*.txt"</code> finds files by name.</div></div>
+      <div class="task-block"><div class="task-title">⚡ Task</div><div class="task-text">Find all <code>.log</code> files in <code>/var/log</code> directory.</div><button class="hint-btn" onclick="toggleHint(this)">💡 Hint</button><div class="hint-reveal">find /var/log -name "*.log"</div></div>`,
+      starterCode: `# Find log files\n`,
+      check: (code) => { const ok = /^find\s+\/var\/log\s+-name\s+["']\*\.log["']/.test(code.trim()); return { ok, msg: 'find /var/log -name "*.log"' }; }
+    },
+    { title: 'Tar Archive', badge: 'tar', xp: 55,
+      question: `<div class="concept-block"><div class="concept-label">Compressing Files</div><div class="concept-text"><code>tar -czf archive.tar.gz folder/</code> creates a gzipped tarball.</div></div>
+      <div class="task-block"><div class="task-title">⚡ Task</div><div class="task-text">Create a compressed archive <code>backup.tar.gz</code> from directory <code>mydata</code>.</div><button class="hint-btn" onclick="toggleHint(this)">💡 Hint</button><div class="hint-reveal">tar -czf backup.tar.gz mydata</div></div>`,
+      starterCode: `# Create tarball\n`,
+      check: (code) => { const ok = /^tar\s+-czf\s+backup\.tar\.gz\s+mydata\s*$/.test(code.trim()); return { ok, msg: 'tar -czf backup.tar.gz mydata' }; }
+    }
+  ]}
+];
+
+// State
+let state = {
+  chapterIdx: 0, stepIdx: 0, xp: 0, streak: 0,
+  completedSteps: new Set(),
+  completedChapters: new Set(),
+  hintUsed: false
+};
+
+function buildChapterNav() {
+  const nav = document.getElementById('chapter-nav');
+  nav.innerHTML = '';
+  curriculum.forEach((ch, i) => {
+    const tab = document.createElement('div');
+    tab.className = `chapter-tab ${i === state.chapterIdx ? 'active' : ''} ${state.completedChapters.has(i) ? 'done' : ''} ${!isUnlocked(i) ? 'locked' : ''}`;
+    tab.textContent = ch.icon + ' ' + ch.name;
+    tab.onclick = () => { if(isUnlocked(i)) { state.chapterIdx = i; state.stepIdx = 0; buildChapterNav(); loadStep(); } };
+    nav.appendChild(tab);
+  });
+}
+function isUnlocked(i) { if(i===0) return true; return state.completedChapters.has(i-1) || state.chapterIdx === i; }
+
+function loadStep() {
+  const ch = curriculum[state.chapterIdx];
+  const step = ch.steps[state.stepIdx];
+  document.getElementById('chapter-name').textContent = ch.name;
+  document.getElementById('step-counter').textContent = `${state.stepIdx+1}/${ch.steps.length}`;
+  document.getElementById('step-badge').textContent = step.badge;
+  document.getElementById('lesson-title').textContent = step.title;
+  document.getElementById('question-body').innerHTML = step.question;
+  document.getElementById('code-editor').value = step.starterCode;
+  document.getElementById('output-area').innerHTML = '<span class="out-muted">// Ready for Linux command</span>';
+  document.getElementById('output-dot').className = 'output-dot';
+  let progress = ((state.stepIdx) / ch.steps.length) * 100;
+  document.getElementById('progress-fill').style.width = progress + '%';
+  updateLineNums();
+  updateStats();
+}
+function updateStats() {
+  document.getElementById('xp-count').innerText = state.xp;
+  document.getElementById('streak-count').innerText = state.streak;
+  document.getElementById('level-count').innerText = Math.floor(state.xp / 400) + 1;
+}
+function updateLineNums() {
+  const ta = document.getElementById('code-editor');
+  const lines = ta.value.split('\n').length;
+  document.getElementById('line-nums').innerHTML = Array(lines).fill().map((_,i)=>i+1).join('\n');
+}
+function handleTab(e) { if(e.key==='Tab'){ e.preventDefault(); const ta=e.target; const s=ta.selectionStart; ta.value=ta.value.slice(0,s)+'  '+ta.value.slice(s); ta.selectionStart=ta.selectionEnd=s+2; updateLineNums(); } }
+function resetCode() { loadStep(); }
+function toggleHint(btn) { const hint = btn.nextElementSibling; hint.classList.toggle('show'); btn.innerText = hint.classList.contains('show') ? '🙈 Hide' : '💡 Hint'; state.hintUsed = true; }
+
+function checkCode() {
+  let code = document.getElementById('code-editor').value.trim();
+  const step = curriculum[state.chapterIdx].steps[state.stepIdx];
+  const outDiv = document.getElementById('output-area');
+  const dot = document.getElementById('output-dot');
+  dot.className = 'output-dot';
+  outDiv.innerHTML = `<span class="out-info">⏳ Validating command...</span>`;
+
+  setTimeout(() => {
+    let result = step.check(code);
+    if(result.ok) {
+      dot.className = 'output-dot success';
+      outDiv.innerHTML = `<span class="out-success">✓ Correct! ${result.output || 'Command syntax valid.'}</span>`;
+      const stepKey = `${state.chapterIdx}-${state.stepIdx}`;
+      if(!state.completedSteps.has(stepKey)){
+        let earned = state.hintUsed ? Math.floor(step.xp * 0.7) : step.xp;
+        state.xp += earned;
+        state.streak++;
+        state.completedSteps.add(stepKey);
+        updateStats();
+        showFeedback(true, earned);
+        burstParticles();
+      } else { showFeedback(true, 0); }
+    } else {
+      dot.className = 'output-dot error';
+      outDiv.innerHTML = `<span class="out-error">✗ ${result.msg}</span>`;
+      state.streak = 0;
+      updateStats();
+      shakeEditor();
+    }
+    state.hintUsed = false;
+  }, 200);
+}
+
+function showFeedback(success, earned) {
+  const overlay = document.getElementById('feedback-overlay');
+  const titleDiv = document.getElementById('feedback-title');
+  const msgDiv = document.getElementById('feedback-msg');
+  const xpSpan = document.getElementById('xp-gained');
+  if(success){
+    titleDiv.innerText = '🐧 Great command!';
+    msgDiv.innerText = 'You\'re mastering the Linux terminal!';
+    xpSpan.innerText = earned > 0 ? `+${earned} XP` : 'Already completed';
+    overlay.classList.add('show');
+  }
+}
+function nextStep() {
+  document.getElementById('feedback-overlay').classList.remove('show');
+  const ch = curriculum[state.chapterIdx];
+  if(state.stepIdx < ch.steps.length - 1) { state.stepIdx++; }
+  else {
+    state.completedChapters.add(state.chapterIdx);
+    if(state.chapterIdx < curriculum.length-1){
+      state.chapterIdx++;
+      state.stepIdx = 0;
+    }
+    buildChapterNav();
+  }
+  loadStep();
+}
+function shakeEditor() { const e = document.querySelector('.editor-panel'); e.style.transform = 'translateX(-4px)'; setTimeout(()=>e.style.transform='translateX(4px)',100); setTimeout(()=>e.style.transform='translateX(0)',200); }
+function burstParticles() {
+  for(let i=0;i<24;i++){
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const x = window.innerWidth/2;
+    const y = window.innerHeight/2;
+    p.style.left = x + 'px';
+    p.style.top = y + 'px';
+    p.style.backgroundColor = '#00ff87';
+    const angle = Math.random() * Math.PI * 2;
+    const dist = 70 + Math.random() * 110;
+    p.style.setProperty('--tx', Math.cos(angle) * dist + 'px');
+    p.style.setProperty('--ty', Math.sin(angle) * dist + 'px');
+    document.body.appendChild(p);
+    setTimeout(() => p.remove(), 800);
+  }
+}
+
+function init() { buildChapterNav(); loadStep(); updateStats(); }
+init();
+</script>
+</body>
+</html>

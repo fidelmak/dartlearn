@@ -1,0 +1,698 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LaravelQuest — Learn Laravel by Doing | Complete Framework Tutorial</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Space+Grotesk:wght@300;400;600;700&family=Unbounded:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --panel: #0f1424;
+    --border: #1e2a45;
+    --laravel-red: #ff2d20;
+    --laravel-orange: #f4642d;
+    --laravel-gray: #6c757d;
+    --laravel-blue: #3490dc;
+    --success: #00ff87;
+    --error: #ff4444;
+    --text: #e8eaf6;
+    --muted: #5a6a8a;
+    --code-bg: #080c18;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    font-family: 'Space Grotesk', sans-serif;
+    color: var(--text);
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: linear-gradient(rgba(255,45,32,0.02) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(255,45,32,0.02) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 24px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(15,20,36,0.95);
+    backdrop-filter: blur(12px);
+    position: relative;
+    z-index: 10;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .logo {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 900;
+    font-size: 1.3rem;
+    background: linear-gradient(90deg, var(--laravel-red), var(--laravel-orange));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .logo span { background: linear-gradient(90deg, var(--laravel-blue), var(--laravel-gray)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+  .donate-badge {
+    background: rgba(255,45,32,0.12);
+    border: 1px solid var(--laravel-red);
+    border-radius: 40px;
+    padding: 6px 14px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--laravel-red);
+    letter-spacing: 0.02em;
+  }
+  .donate-badge strong { color: white; font-family: monospace; }
+
+  .progress-bar-wrap {
+    flex: 1;
+    max-width: 400px;
+    min-width: 180px;
+  }
+  .progress-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    display: flex;
+    justify-content: space-between;
+  }
+  .progress-track {
+    height: 4px;
+    background: var(--border);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--laravel-red), var(--laravel-orange));
+    border-radius: 99px;
+    transition: width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .stats {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  .stat-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    background: var(--border);
+    padding: 5px 12px;
+    border-radius: 99px;
+  }
+  .stat-pill.xp { color: var(--success); }
+  .stat-pill.streak { color: var(--laravel-orange); }
+  .stat-pill.level { color: var(--laravel-blue); }
+
+  .chapter-nav {
+    display: flex;
+    gap: 0;
+    padding: 0 24px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(10,14,26,0.8);
+    flex-shrink: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .chapter-nav::-webkit-scrollbar { display: none; }
+  .chapter-tab {
+    padding: 10px 20px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .chapter-tab.active { color: var(--laravel-red); border-bottom-color: var(--laravel-red); }
+  .chapter-tab.done { color: var(--success); }
+  .chapter-tab.locked { opacity: 0.35; cursor: not-allowed; }
+
+  .main {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
+  }
+
+  .question-panel {
+    width: 45%;
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--panel);
+  }
+  .panel-header {
+    padding: 16px 20px 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+  .step-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 4px;
+    background: rgba(255,45,32,0.12);
+    color: var(--laravel-red);
+    border: 1px solid rgba(255,45,32,0.3);
+  }
+  .lesson-title { font-family: 'Unbounded', sans-serif; font-size: 0.85rem; font-weight: 700; }
+
+  .question-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 20px;
+    scrollbar-width: thin;
+  }
+  .concept-block { margin-bottom: 24px; animation: slideIn 0.3s ease; }
+  @keyframes slideIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+  .concept-label {
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--laravel-orange);
+    margin-bottom: 8px;
+  }
+  .concept-text { font-size: 0.88rem; line-height: 1.7; color: #b8c5e0; }
+  .concept-text code, .example-block code {
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--code-bg);
+    color: var(--laravel-blue);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+  }
+  .example-block {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 16px 0;
+  }
+  .example-block pre {
+    padding: 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    color: #e2e8f0;
+  }
+  .task-block {
+    background: rgba(255,45,32,0.05);
+    border: 1px solid rgba(255,45,32,0.2);
+    border-radius: 10px;
+    padding: 16px;
+    margin-top: 16px;
+  }
+  .task-title {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--laravel-red);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .hint-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 6px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.7rem;
+    margin-top: 12px;
+  }
+  .hint-reveal {
+    display: none;
+    margin-top: 12px;
+    padding: 12px;
+    background: rgba(255,45,32,0.05);
+    border-left: 3px solid var(--laravel-red);
+    font-family: monospace;
+    font-size: 0.75rem;
+  }
+  .hint-reveal.show { display: block; }
+
+  .editor-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: var(--code-bg);
+    overflow: hidden;
+  }
+  .editor-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(15,20,36,0.8);
+  }
+  .file-tab {
+    font-family: monospace;
+    font-size: 0.75rem;
+    color: var(--laravel-red);
+    background: rgba(255,45,32,0.1);
+    padding: 4px 14px;
+    border-radius: 4px;
+  }
+  .editor-actions { display: flex; gap: 10px; }
+  .run-btn {
+    background: linear-gradient(135deg, var(--laravel-red), var(--laravel-orange));
+    color: #fff;
+    border: none;
+    padding: 6px 20px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  .reset-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 5px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .editor-wrap { display: flex; flex: 1; overflow: hidden; }
+  .line-nums {
+    padding: 16px 0;
+    text-align: right;
+    font-family: monospace;
+    font-size: 0.8rem;
+    line-height: 1.6;
+    color: var(--muted);
+    padding-right: 12px;
+    padding-left: 10px;
+    background: rgba(0,0,0,0.2);
+    border-right: 1px solid var(--border);
+    min-width: 48px;
+  }
+  #code-editor {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #eeffff;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    line-height: 1.6;
+    padding: 16px;
+    resize: none;
+    white-space: pre;
+    overflow: auto;
+  }
+  .output-panel {
+    height: 170px;
+    border-top: 1px solid var(--border);
+    background: #05080f;
+    display: flex;
+    flex-direction: column;
+  }
+  .output-header {
+    padding: 8px 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .output-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+  .output-dot.success { background: var(--success); }
+  .output-dot.error { background: var(--error); }
+  #output-area {
+    flex: 1;
+    padding: 10px 16px;
+    font-family: monospace;
+    font-size: 0.75rem;
+    overflow-y: auto;
+    white-space: pre-wrap;
+  }
+  .feedback-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    opacity: 0;
+    pointer-events: none;
+    transition: 0.2s;
+  }
+  .feedback-overlay.show { opacity: 1; pointer-events: all; }
+  .feedback-card {
+    background: var(--panel);
+    border-radius: 24px;
+    padding: 32px;
+    text-align: center;
+    max-width: 380px;
+    border: 1px solid var(--laravel-red);
+  }
+  .continue-btn {
+    background: linear-gradient(135deg, var(--laravel-red), var(--laravel-orange));
+    border: none;
+    padding: 12px 28px;
+    border-radius: 40px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 16px;
+    width: 100%;
+    color: #fff;
+  }
+  .particle {
+    position: fixed;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 1000;
+    animation: blast 0.8s ease-out forwards;
+  }
+  @keyframes blast {
+    0% { transform: translate(0,0) scale(1); opacity: 1; }
+    100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Laravel<span>Quest</span></div>
+  <div class="donate-badge">⚡ Support Laravel education — OPay: <strong>9072210193</strong> Paul</div>
+  <div class="progress-bar-wrap">
+    <div class="progress-label"><span id="chapter-name">Laravel Basics</span><span id="step-counter">0/0</span></div>
+    <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+  </div>
+  <div class="stats">
+    <div class="stat-pill xp">⚡ <span id="xp-count">0</span> XP</div>
+    <div class="stat-pill streak">🔥 <span id="streak-count">0</span></div>
+    <div class="stat-pill level">Lv <span id="level-count">1</span></div>
+  </div>
+</header>
+
+<nav class="chapter-nav" id="chapter-nav"></nav>
+
+<div class="main">
+  <div class="question-panel">
+    <div class="panel-header"><div class="step-badge" id="step-badge">LESSON</div><div class="lesson-title" id="lesson-title">Intro to Laravel</div></div>
+    <div class="question-body" id="question-body"></div>
+  </div>
+  <div class="editor-panel">
+    <div class="editor-topbar"><div class="file-tab">🚀 Laravel Code</div><div class="editor-actions"><button class="reset-btn" onclick="resetCode()">↺ Reset</button><button class="run-btn" onclick="checkCode()">▶ Verify Code</button></div></div>
+    <div class="editor-wrap"><div class="line-nums" id="line-nums">1</div><textarea id="code-editor" spellcheck="false" onkeydown="handleTab(event)" oninput="updateLineNums()"></textarea></div>
+    <div class="output-panel"><div class="output-header"><div class="output-dot" id="output-dot"></div>VALIDATION RESULT</div><div id="output-area"><span class="out-muted">// Write Laravel PHP code and click Verify</span></div></div>
+  </div>
+</div>
+
+<div class="feedback-overlay" id="feedback-overlay"><div class="feedback-card"><span class="feedback-emoji" id="feedback-emoji">🚀</span><div class="feedback-title" id="feedback-title">Correct!</div><div class="feedback-msg" id="feedback-msg"></div><div id="xp-gained" style="color:var(--laravel-red); margin:12px 0; font-weight:bold;"></div><button class="continue-btn" onclick="nextStep()">Next Lesson →</button></div></div>
+
+<script>
+// ============================================================
+// LARAVEL CURRICULUM — from basics to advanced
+// Routing, Controllers, Blade, Eloquent, Middleware, Auth, Queues, API Resources
+// ============================================================
+
+const curriculum = [
+  { id: 'basics', name: 'Routing Basics', icon: '🛣️', steps: [
+    { title: 'Basic Route', badge: 'web.php', xp: 30,
+      question: `<div class="concept-block"><div class="concept-label">Laravel Routes</div><div class="concept-text">Routes are defined in <code>routes/web.php</code>. A basic route returns a view or response.</div></div>
+      <div class="example-block"><pre>Route::get('/', function () {
+    return view('welcome');
+});</pre></div>
+      <div class="task-block"><div class="task-title">⚡ Task</div><div class="task-text">Create a GET route for <code>/about</code> that returns the string <code>"About Us"</code>.</div><button class="hint-btn" onclick="toggleHint(this)">💡 Hint</button><div class="hint-reveal">Route::get('/about', function () { return "About Us"; });</div></div>`,
+      starterCode: `<?php\n// Add your route here\n`,
+      check: (code) => { const ok = /Route::get\s*\(\s*['"]\/about['"]\s*,\s*function\s*\(\)\s*\{\s*return\s+['"]About Us['"]\s*;\s*\}/.test(code); return { ok, msg: ok ? '' : 'Use: Route::get(\'/about\', function() { return "About Us"; });' }; }
+    },
+    { title: 'Route Parameters', badge: 'Dynamic', xp: 35,
+      question: `<div class="concept-block"><div class="concept-label">URL Parameters</div><div class="concept-text">Capture parameters with curly braces: <code>{id}</code>. Use optional parameters with <code>?</code>.</div></div>
+      <div class="task-block"><div class="task-title">⚡ Task</div><div class="task-text">Create a GET route <code>/user/{id}</code> that returns <code>"User ID: {id}"</code>.</div><button class="hint-btn" onclick="toggleHint(this)">💡 Hint</button><div class="hint-reveal">Route::get('/user/{id}', function ($id) { return "User ID: " . $id; });</div></div>`,
+      starterCode: `// Route with parameter\n`,
+      check: (code) => { const ok = /Route::get\s*\(\s*['"]\/user\/\{id\}['"]\s*,\s*function\s*\(\s*\$id\s*\)/.test(code) && /return\s+["']User ID:["']\s*\.\s*\$id/.test(code); return { ok, msg: 'Route::get(\'/user/{id}\', fn($id) => "User ID: $id")' }; }
+    }
+  ]},
+  { id: 'controllers', name: 'Controllers', icon: '🎮', steps: [
+    { title: 'Simple Controller', badge: 'Artisan', xp: 45,
+      question: `<div class="concept-block"><div class="concept-label">Separating Logic</div><div class="concept-text">Controllers group related request handling. Create with <code>php artisan make:controller UserController</code>.</div></div>
+      <div class="task-block"><div class="task-title">⚡ Task</div><div class="task-text">Create a basic controller class <code>ProductController</code> with a method <code>index()</code> that returns <code>"Products list"</code>.</div><button class="hint-btn" onclick="toggleHint(this)">💡 Hint</button><div class="hint-reveal">class ProductController extends Controller { public function index() { return "Products list"; } }</div></div>`,
+      starterCode: `<?php\nnamespace App\Http\Controllers;\n\nuse Illuminate\Http\Request;\n\n// Write ProductController here\n`,
+      check: (code) => { const ok = /class\s+ProductController\s+extends\s+Controller/.test(code) && /public\s+function\s+index\s*\(\)/.test(code) && /return\s+["']Products list["']/.test(code); return { ok, msg: 'Create ProductController with index() method' }; }
+    },
+    { title: 'Resource Controller', badge: 'RESTful', xp: 55,
+      question: `<div class="concept-block"><div class="concept-label">Resource Controllers</div><div class="concept-text">Use <code>Route::resource()</code> for CRUD routes. Methods: index, create, store, show, edit, update, destroy.</div></div>
+      <div class="task-block"><div class="task-title">⚡ Task</div><div class="task-text">Define a resource route for <code>posts</code> that points to <code>PostController</code>.</div><button class="hint-btn" onclick="toggleHint(this)">💡 Hint</button><div class="hint-reveal">Route::resource('posts', PostController::class);</div></div>`,
+      starterCode: `// Resource route definition\n`,
+      check: (code) => { const ok = /Route::resource\s*\(\s*['"]posts['"]\s*,\s*PostController::class\s*\)/.test(code); return { ok, msg: 'Route::resource(\'posts\', PostController::class);' }; }
+    }
+  ]},
+  { id: 'blade', name: 'Blade Templates', icon: '🎨', steps: [
+    { title: 'Blade Syntax', badge: 'blade.php', xp: 40,
+      question: `<div class="concept-block"><div class="concept-label">Laravel's Templating Engine</div><div class="concept-text">Blade uses <code>{{ }}</code> for echoing and <code>@</code> directives for control structures.</div></div>
+      <div class="task-block"><div class="task-title">⚡ Task</div><div class="task-text">Write Blade code to display a variable <code>$name</code> inside an <code>&lt;h1&gt;</code> tag.</div><button class="hint-btn" onclick="toggleHint(this)">💡 Hint</button><div class="hint-reveal"><h1>{{ $name }}</h1></div></div>`,
+      starterCode: `<!-- Blade template code -->\n`,
+      check: (code) => { const ok = /<h1>\{\{\s*\$name\s*\}\}<\/h1>/.test(code); return { ok, msg: 'Use {{ $name }} inside h1 tags' }; }
+    },
+    { title: 'Blade Directives', badge: '@if', xp: 45,
+      question: `<div class="concept-block"><div class="concept-label">Conditionals & Loops</div><div class="concept-text">Directives: <code>@if, @else, @foreach, @for, @while</code></div></div>
+      <div class="task-block"><div class="task-title">⚡ Task</div><div class="task-text">Write Blade code that checks if <code>$isAdmin</code> is true and displays "Admin Panel".</div><button class="hint-btn" onclick="toggleHint(this)">💡 Hint</button><div class="hint-reveal">@if($isAdmin) <div>Admin Panel</div> @endif</div></div>`,
+      starterCode: `<!-- Conditional blade -->\n`,
+      check: (code) => { const ok = /@if\s*\(\s*\$isAdmin\s*\)/.test(code) && /Admin Panel/.test(code); return { ok, msg: 'Use @if($isAdmin) ... @endif' }; }
+    }
+  ]},
+  { id: 'eloquent', name: 'Eloquent ORM', icon: '🗄️', steps: [
+    { title: 'Model Creation', badge: 'Model', xp: 60,
+      question: `<div class="concept-block"><div class="concept-label">Laravel Models</div><div class="concept-text">Eloquent models interact with database tables. Create with <code>php artisan make:model User</code>.</div></div>
+      <div class="task-block"><div class="task-title">⚡ Task</div><div class="task-text">Create a <code>Product</code> model with fillable <code>name</code> and <code>price</code> properties.</div><button class="hint-btn" onclick="toggleHint(this)">💡 Hint</button><div class="hint-reveal">class Product extends Model { protected $fillable = ['name', 'price']; }</div></div>`,
+      starterCode: `<?php\nnamespace App\Models;\n\nuse Illuminate\Database\Eloquent\Model;\n\n// Write Product model\n`,
+      check: (code) => { const ok = /class\s+Product\s+extends\s+Model/.test(code) && /\$fillable\s*=\s*\[['"]name['"],\s*['"]price['"]\]/.test(code); return { ok, msg: 'Extend Model, add $fillable array' }; }
+    },
+    { title: 'Eloquent Queries', badge: 'Builder', xp: 65,
+      question: `<div class="concept-block"><div class="concept-label">Query Builder</div><div class="concept-text">Eloquent provides fluent methods: <code>where()</code>, <code>orderBy()</code>, <code>get()</code>, <code>first()</code>.</div></div>
+      <div class="task-block"><div class="task-title">⚡ Task</div><div class="task-text">Write a query to get all products with price greater than 100, ordered by name.</div><button class="hint-btn" onclick="toggleHint(this)">💡 Hint</button><div class="hint-reveal">Product::where('price', '>', 100)->orderBy('name')->get();</div></div>`,
+      starterCode: `// Eloquent query\n`,
+      check: (code) => { const ok = /Product::where\s*\(\s*['"]price['"]\s*,\s*'>'\s*,\s*100\s*\)/.test(code) && /orderBy\s*\(\s*['"]name['"]\s*\)/.test(code); return { ok, msg: 'Product::where(\'price\', \'>\', 100)->orderBy(\'name\')->get()' }; }
+    },
+    { title: 'Relationships', badge: 'Relations', xp: 80,
+      question: `<div class="concept-block"><div class="concept-label">Eloquent Relationships</div><div class="concept-text">Define <code>belongsTo</code>, <code>hasMany</code>, <code>belongsToMany</code> relationships.</div></div>
+      <div class="task-block"><div class="task-title">⚡ Task</div><div class="task-text">In <code>User</code> model, define a <code>hasMany</code> relationship to <code>Post</code> model.</div><button class="hint-btn" onclick="toggleHint(this)">💡 Hint</button><div class="hint-reveal">public function posts() { return $this->hasMany(Post::class); }</div></div>`,
+      starterCode: `// Define relationship\n`,
+      check: (code) => { const ok = /function\s+posts\s*\(\s*\)/.test(code) && /\$this->hasMany\s*\(\s*Post::class\s*\)/.test(code); return { ok, msg: 'public function posts() { return $this->hasMany(Post::class); }' }; }
+    }
+  ]},
+  { id: 'middleware', name: 'Middleware', icon: '🛡️', steps: [
+    { title: 'Custom Middleware', badge: 'Middleware', xp: 70,
+      question: `<div class="concept-block"><div class="concept-label">HTTP Filters</div><div class="concept-text">Middleware runs before requests. Create with <code>php artisan make:middleware CheckAge</code>.</div></div>
+      <div class="task-block"><div class="task-title">⚡ Task</div><div class="task-text">Write a middleware <code>CheckAge</code> that aborts if age is less than 18.</div><button class="hint-btn" onclick="toggleHint(this)">💡 Hint</button><div class="hint-reveal">if ($request->age < 18) { abort(403, 'Age restriction'); } return $next($request);</div></div>`,
+      starterCode: `// Middleware handle method\n`,
+      check: (code) => { const ok = /\$request->age\s*<\s*18/.test(code) && /abort\s*\(\s*403\s*,\s*['"]Age restriction['"]\s*\)/.test(code); return { ok, msg: 'Check age and abort if under 18' }; }
+    }
+  ]},
+  { id: 'auth', name: 'Authentication', icon: '🔐', steps: [
+    { title: 'Auth Facade', badge: 'Auth', xp: 75,
+      question: `<div class="concept-block"><div class="concept-label">Laravel Authentication</div><div class="concept-text">Use <code>Auth::check()</code>, <code>Auth::user()</code>, <code>Auth::id()</code> for current user.</div></div>
+      <div class="task-block"><div class="task-title">⚡ Task</div><div class="task-text">Write code to check if user is logged in, then return user's name, else return 'Guest'.</div><button class="hint-btn" onclick="toggleHint(this)">💡 Hint</button><div class="hint-reveal">if (Auth::check()) { return Auth::user()->name; } return 'Guest';</div></div>`,
+      starterCode: `// Auth check code\n`,
+      check: (code) => { const ok = /Auth::check\s*\(\s*\)/.test(code) && /Auth::user\(\)->name/.test(code); return { ok, msg: 'Use Auth::check() and Auth::user()->name' }; }
+    },
+    { title: 'Middleware Auth', badge: 'auth', xp: 70,
+      question: `<div class="concept-block"><div class="concept-label">Protecting Routes</div><div class="concept-text">Use <code>auth</code> middleware to protect routes from unauthenticated users.</div></div>
+      <div class="task-block"><div class="task-title">⚡ Task</div><div class="task-text">Apply <code>auth</code> middleware to a route group for <code>/dashboard</code>.</div><button class="hint-btn" onclick="toggleHint(this)">💡 Hint</button><div class="hint-reveal">Route::middleware(['auth'])->group(function () { Route::get('/dashboard', ...); });</div></div>`,
+      starterCode: `// Route with auth middleware\n`,
+      check: (code) => { const ok = /middleware\s*\(\s*\[['"]auth['"]\]\s*\)/.test(code) && /Route::get\s*\(\s*['"]\/dashboard['"]/.test(code); return { ok, msg: 'Use middleware group with auth' }; }
+    }
+  ]},
+  { id: 'advanced', name: 'Advanced Features', icon: '⚡', steps: [
+    { title: 'Queues & Jobs', badge: 'Queue', xp: 90,
+      question: `<div class="concept-block"><div class="concept-label">Background Processing</div><div class="concept-text">Create jobs with <code>php artisan make:job SendEmail</code>. Dispatch using <code>dispatch()</code>.</div></div>
+      <div class="task-block"><div class="task-title">⚡ Task</div><div class="task-text">Write code to dispatch a <code>SendWelcomeEmail</code> job with a <code>$user</code> parameter.</div><button class="hint-btn" onclick="toggleHint(this)">💡 Hint</button><div class="hint-reveal">SendWelcomeEmail::dispatch($user);</div></div>`,
+      starterCode: `// Dispatch job\n`,
+      check: (code) => { const ok = /SendWelcomeEmail::dispatch\s*\(\s*\$user\s*\)/.test(code); return { ok, msg: 'SendWelcomeEmail::dispatch($user);' }; }
+    },
+    { title: 'API Resources', badge: 'API', xp: 85,
+      question: `<div class="concept-block"><div class="concept-label">RESTful APIs</div><div class="concept-text">API Resources transform models for JSON responses. Create with <code>php artisan make:resource UserResource</code>.</div></div>
+      <div class="task-block"><div class="task-title">⚡ Task</div><div class="task-text">Inside <code>UserResource</code>, return an array with 'id' and 'email' fields.</div><button class="hint-btn" onclick="toggleHint(this)">💡 Hint</button><div class="hint-reveal">return ['id' => $this->id, 'email' => $this->email];</div></div>`,
+      starterCode: `// API Resource toArray method\n`,
+      check: (code) => { const ok = /return\s+\[\s*['"]id['"]\s*=>\s*\$this->id/.test(code) && /['"]email['"]\s*=>\s*\$this->email/.test(code); return { ok, msg: 'Return array with id and email' }; }
+    },
+    { title: 'Validation', badge: 'Validator', xp: 65,
+      question: `<div class="concept-block"><div class="concept-label">Request Validation</div><div class="concept-text">Use <code>validate()</code> method or custom Form Request classes.</div></div>
+      <div class="task-block"><div class="task-title">⚡ Task</div><div class="task-text">Write validation rules: 'email' required and email format, 'age' required and integer min 18.</div><button class="hint-btn" onclick="toggleHint(this)">💡 Hint</button><div class="hint-reveal">['email' => 'required|email', 'age' => 'required|integer|min:18']</div></div>`,
+      starterCode: `// Validation rules array\n`,
+      check: (code) => { const ok = /['"]email['"]\s*=>\s*['"]required\|email['"]/.test(code) && /['"]age['"]\s*=>\s*['"]required\|integer\|min:18['"]/.test(code); return { ok, msg: 'Validation rules: email required|email, age required|integer|min:18' }; }
+    }
+  ]}
+];
+
+// State
+let state = {
+  chapterIdx: 0, stepIdx: 0, xp: 0, streak: 0,
+  completedSteps: new Set(),
+  completedChapters: new Set(),
+  hintUsed: false
+};
+
+function buildChapterNav() {
+  const nav = document.getElementById('chapter-nav');
+  nav.innerHTML = '';
+  curriculum.forEach((ch, i) => {
+    const tab = document.createElement('div');
+    tab.className = `chapter-tab ${i === state.chapterIdx ? 'active' : ''} ${state.completedChapters.has(i) ? 'done' : ''} ${!isUnlocked(i) ? 'locked' : ''}`;
+    tab.textContent = ch.icon + ' ' + ch.name;
+    tab.onclick = () => { if(isUnlocked(i)) { state.chapterIdx = i; state.stepIdx = 0; buildChapterNav(); loadStep(); } };
+    nav.appendChild(tab);
+  });
+}
+function isUnlocked(i) { if(i===0) return true; return state.completedChapters.has(i-1) || state.chapterIdx === i; }
+
+function loadStep() {
+  const ch = curriculum[state.chapterIdx];
+  const step = ch.steps[state.stepIdx];
+  document.getElementById('chapter-name').textContent = ch.name;
+  document.getElementById('step-counter').textContent = `${state.stepIdx+1}/${ch.steps.length}`;
+  document.getElementById('step-badge').textContent = step.badge;
+  document.getElementById('lesson-title').textContent = step.title;
+  document.getElementById('question-body').innerHTML = step.question;
+  document.getElementById('code-editor').value = step.starterCode;
+  document.getElementById('output-area').innerHTML = '<span class="out-muted">// Ready for Laravel code</span>';
+  document.getElementById('output-dot').className = 'output-dot';
+  let progress = ((state.stepIdx) / ch.steps.length) * 100;
+  document.getElementById('progress-fill').style.width = progress + '%';
+  updateLineNums();
+  updateStats();
+}
+function updateStats() {
+  document.getElementById('xp-count').innerText = state.xp;
+  document.getElementById('streak-count').innerText = state.streak;
+  document.getElementById('level-count').innerText = Math.floor(state.xp / 400) + 1;
+}
+function updateLineNums() {
+  const ta = document.getElementById('code-editor');
+  const lines = ta.value.split('\n').length;
+  document.getElementById('line-nums').innerHTML = Array(lines).fill().map((_,i)=>i+1).join('\n');
+}
+function handleTab(e) { if(e.key==='Tab'){ e.preventDefault(); const ta=e.target; const s=ta.selectionStart; ta.value=ta.value.slice(0,s)+'  '+ta.value.slice(s); ta.selectionStart=ta.selectionEnd=s+2; updateLineNums(); } }
+function resetCode() { loadStep(); }
+function toggleHint(btn) { const hint = btn.nextElementSibling; hint.classList.toggle('show'); btn.innerText = hint.classList.contains('show') ? '🙈 Hide' : '💡 Hint'; state.hintUsed = true; }
+
+function checkCode() {
+  let code = document.getElementById('code-editor').value;
+  const step = curriculum[state.chapterIdx].steps[state.stepIdx];
+  const outDiv = document.getElementById('output-area');
+  const dot = document.getElementById('output-dot');
+  dot.className = 'output-dot';
+  outDiv.innerHTML = `<span class="out-info">⏳ Validating Laravel code...</span>`;
+
+  setTimeout(() => {
+    let result = step.check(code);
+    if(result.ok) {
+      dot.className = 'output-dot success';
+      outDiv.innerHTML = `<span class="out-success">✓ Correct! ${result.output || 'Laravel code is valid.'}</span>`;
+      const stepKey = `${state.chapterIdx}-${state.stepIdx}`;
+      if(!state.completedSteps.has(stepKey)){
+        let earned = state.hintUsed ? Math.floor(step.xp * 0.7) : step.xp;
+        state.xp += earned;
+        state.streak++;
+        state.completedSteps.add(stepKey);
+        updateStats();
+        showFeedback(true, earned);
+        burstParticles();
+      } else { showFeedback(true, 0); }
+    } else {
+      dot.className = 'output-dot error';
+      outDiv.innerHTML = `<span class="out-error">✗ ${result.msg}</span>`;
+      state.streak = 0;
+      updateStats();
+      shakeEditor();
+    }
+    state.hintUsed = false;
+  }, 200);
+}
+
+function showFeedback(success, earned) {
+  const overlay = document.getElementById('feedback-overlay');
+  const titleDiv = document.getElementById('feedback-title');
+  const msgDiv = document.getElementById('feedback-msg');
+  const xpSpan = document.getElementById('xp-gained');
+  if(success){
+    titleDiv.innerText = '🚀 Laravel Master!';
+    msgDiv.innerText = 'Excellent! You\'re mastering Laravel.';
+    xpSpan.innerText = earned > 0 ? `+${earned} XP` : 'Already completed';
+    overlay.classList.add('show');
+  }
+}
+function nextStep() {
+  document.getElementById('feedback-overlay').classList.remove('show');
+  const ch = curriculum[state.chapterIdx];
+  if(state.stepIdx < ch.steps.length - 1) { state.stepIdx++; }
+  else {
+    state.completedChapters.add(state.chapterIdx);
+    if(state.chapterIdx < curriculum.length-1){
+      state.chapterIdx++;
+      state.stepIdx = 0;
+    }
+    buildChapterNav();
+  }
+  loadStep();
+}
+function shakeEditor() { const e = document.querySelector('.editor-panel'); e.style.transform = 'translateX(-4px)'; setTimeout(()=>e.style.transform='translateX(4px)',100); setTimeout(()=>e.style.transform='translateX(0)',200); }
+function burstParticles() {
+  for(let i=0;i<24;i++){
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const x = window.innerWidth/2;
+    const y = window.innerHeight/2;
+    p.style.left = x + 'px';
+    p.style.top = y + 'px';
+    p.style.backgroundColor = '#ff2d20';
+    const angle = Math.random() * Math.PI * 2;
+    const dist = 70 + Math.random() * 110;
+    p.style.setProperty('--tx', Math.cos(angle) * dist + 'px');
+    p.style.setProperty('--ty', Math.sin(angle) * dist + 'px');
+    document.body.appendChild(p);
+    setTimeout(() => p.remove(), 800);
+  }
+}
+
+function init() { buildChapterNav(); loadStep(); updateStats(); }
+init();
+</script>
+</body>
+</html>

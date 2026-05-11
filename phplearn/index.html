@@ -1,0 +1,634 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PHPQuest — Learn PHP by Doing | Full Tutorial</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Space+Grotesk:wght@300;400;600;700&family=Unbounded:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --panel: #0f1424;
+    --border: #1e2a45;
+    --php-purple: #777bb4;
+    --php-blue: #4f5b93;
+    --php-pink: #ff3cac;
+    --php-yellow: #f7c35c;
+    --success: #00ff87;
+    --error: #ff4444;
+    --text: #e8eaf6;
+    --muted: #5a6a8a;
+    --code-bg: #080c18;
+    --glow: 0 0 20px rgba(119,123,180,0.3);
+    --glow-pink: 0 0 20px rgba(255,60,172,0.3);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    font-family: 'Space Grotesk', sans-serif;
+    color: var(--text);
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: linear-gradient(rgba(119,123,180,0.03) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(119,123,180,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 24px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(15,20,36,0.95);
+    backdrop-filter: blur(12px);
+    position: relative;
+    z-index: 10;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .logo {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 900;
+    font-size: 1.3rem;
+    background: linear-gradient(90deg, var(--php-purple), var(--php-blue));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .logo span { background: linear-gradient(90deg, var(--php-pink), var(--php-yellow)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+  .donate-badge {
+    background: rgba(247,195,92,0.12);
+    border: 1px solid var(--php-yellow);
+    border-radius: 40px;
+    padding: 6px 14px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--php-yellow);
+    letter-spacing: 0.02em;
+  }
+  .donate-badge strong { color: white; font-family: monospace; }
+
+  .progress-bar-wrap {
+    flex: 1;
+    max-width: 400px;
+    min-width: 180px;
+  }
+  .progress-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    display: flex;
+    justify-content: space-between;
+  }
+  .progress-track {
+    height: 4px;
+    background: var(--border);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--php-purple), var(--php-blue));
+    border-radius: 99px;
+    transition: width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .stats {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  .stat-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    background: var(--border);
+    padding: 5px 12px;
+    border-radius: 99px;
+  }
+  .stat-pill.xp { color: var(--success); }
+  .stat-pill.streak { color: var(--php-yellow); }
+  .stat-pill.level { color: var(--php-purple); }
+
+  .chapter-nav {
+    display: flex;
+    gap: 0;
+    padding: 0 24px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(10,14,26,0.8);
+    flex-shrink: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .chapter-nav::-webkit-scrollbar { display: none; }
+  .chapter-tab {
+    padding: 10px 20px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .chapter-tab.active { color: var(--php-yellow); border-bottom-color: var(--php-yellow); }
+  .chapter-tab.done { color: var(--success); }
+  .chapter-tab.locked { opacity: 0.35; cursor: not-allowed; }
+
+  .main {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
+  }
+
+  .question-panel {
+    width: 42%;
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--panel);
+  }
+  .panel-header {
+    padding: 16px 20px 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+  .step-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 4px;
+    background: rgba(119,123,180,0.12);
+    color: var(--php-purple);
+    border: 1px solid rgba(119,123,180,0.3);
+  }
+  .lesson-title { font-family: 'Unbounded', sans-serif; font-size: 0.85rem; font-weight: 700; }
+
+  .question-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 20px;
+    scrollbar-width: thin;
+  }
+  .concept-block { margin-bottom: 24px; animation: slideIn 0.3s ease; }
+  @keyframes slideIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+  .concept-label {
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--php-pink);
+    margin-bottom: 8px;
+  }
+  .concept-text { font-size: 0.88rem; line-height: 1.7; color: #b8c5e0; }
+  .concept-text code, .example-block code {
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--code-bg);
+    color: var(--php-yellow);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+  }
+  .example-block {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 16px 0;
+    position: relative;
+  }
+  .example-block pre {
+    padding: 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    overflow-x: auto;
+    white-space: pre-wrap;
+  }
+  .task-block {
+    background: rgba(119,123,180,0.05);
+    border: 1px solid rgba(119,123,180,0.2);
+    border-radius: 10px;
+    padding: 16px;
+    margin-top: 16px;
+  }
+  .task-title {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--php-yellow);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .hint-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 6px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.7rem;
+    margin-top: 12px;
+  }
+  .hint-reveal {
+    display: none;
+    margin-top: 12px;
+    padding: 12px;
+    background: rgba(247,195,92,0.05);
+    border-left: 3px solid var(--php-yellow);
+    font-family: monospace;
+    font-size: 0.75rem;
+  }
+  .hint-reveal.show { display: block; }
+
+  .editor-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: var(--code-bg);
+    overflow: hidden;
+  }
+  .editor-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(15,20,36,0.8);
+  }
+  .file-tab {
+    font-family: monospace;
+    font-size: 0.75rem;
+    color: var(--php-yellow);
+    background: rgba(247,195,92,0.1);
+    padding: 4px 14px;
+    border-radius: 4px;
+  }
+  .editor-actions { display: flex; gap: 10px; }
+  .run-btn {
+    background: linear-gradient(135deg, var(--php-purple), var(--php-blue));
+    color: #000;
+    border: none;
+    padding: 6px 20px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  .reset-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 5px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .editor-wrap { display: flex; flex: 1; overflow: hidden; }
+  .line-nums {
+    padding: 16px 0;
+    text-align: right;
+    font-family: monospace;
+    font-size: 0.8rem;
+    line-height: 1.6;
+    color: var(--muted);
+    padding-right: 12px;
+    padding-left: 10px;
+    background: rgba(0,0,0,0.2);
+    border-right: 1px solid var(--border);
+    min-width: 48px;
+  }
+  #code-editor {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #eeffff;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    line-height: 1.6;
+    padding: 16px;
+    resize: none;
+    white-space: pre;
+    overflow: auto;
+  }
+  .output-panel {
+    height: 140px;
+    border-top: 1px solid var(--border);
+    background: #05080f;
+    display: flex;
+    flex-direction: column;
+  }
+  .output-header {
+    padding: 8px 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .output-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+  .output-dot.success { background: var(--success); }
+  .output-dot.error { background: var(--error); }
+  #output-area {
+    flex: 1;
+    padding: 10px 16px;
+    font-family: monospace;
+    font-size: 0.75rem;
+    overflow-y: auto;
+    white-space: pre-wrap;
+  }
+  .feedback-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.8);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    opacity: 0;
+    pointer-events: none;
+    transition: 0.2s;
+  }
+  .feedback-overlay.show { opacity: 1; pointer-events: all; }
+  .feedback-card {
+    background: var(--panel);
+    border-radius: 24px;
+    padding: 32px;
+    text-align: center;
+    max-width: 380px;
+    border: 1px solid var(--border);
+  }
+  .continue-btn {
+    background: linear-gradient(135deg, var(--php-purple), var(--php-blue));
+    border: none;
+    padding: 12px 28px;
+    border-radius: 40px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 16px;
+    width: 100%;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">PHP<span>Quest</span></div>
+  <div class="donate-badge">💙 Support PHP education — OPay: <strong>9072210193</strong> Paul</div>
+  <div class="progress-bar-wrap">
+    <div class="progress-label"><span id="chapter-name">PHP Basics</span><span id="step-counter">0/0</span></div>
+    <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+  </div>
+  <div class="stats">
+    <div class="stat-pill xp">⚡ <span id="xp-count">0</span> XP</div>
+    <div class="stat-pill streak">🔥 <span id="streak-count">0</span></div>
+    <div class="stat-pill level">Lv <span id="level-count">1</span></div>
+  </div>
+</header>
+
+<nav class="chapter-nav" id="chapter-nav"></nav>
+
+<div class="main">
+  <div class="question-panel">
+    <div class="panel-header"><div class="step-badge" id="step-badge">STEP 1</div><div class="lesson-title" id="lesson-title">Intro</div></div>
+    <div class="question-body" id="question-body"></div>
+  </div>
+  <div class="editor-panel">
+    <div class="editor-topbar"><div class="file-tab">🐘 index.php</div><div class="editor-actions"><button class="reset-btn" onclick="resetCode()">↺ Reset</button><button class="run-btn" onclick="checkCode()">▶ Run & Check</button></div></div>
+    <div class="editor-wrap"><div class="line-nums" id="line-nums">1</div><textarea id="code-editor" spellcheck="false" onkeydown="handleTab(event)" oninput="updateLineNums()"></textarea></div>
+    <div class="output-panel"><div class="output-header"><div class="output-dot" id="output-dot"></div>OUTPUT</div><div id="output-area"><span class="out-muted">// Write PHP code inside &lt;?php ?&gt; tags</span></div></div>
+  </div>
+</div>
+
+<div class="feedback-overlay" id="feedback-overlay"><div class="feedback-card"><span class="feedback-emoji" id="feedback-emoji">🎉</span><div class="feedback-title" id="feedback-title">Correct!</div><div class="feedback-msg" id="feedback-msg"></div><div class="xp-gained" id="xp-gained" style="color:var(--success); margin:12px 0"></div><button class="continue-btn" onclick="nextStep()">Continue →</button></div></div>
+
+<script>
+// ============================================================
+// PHP CURRICULUM — from basic to advanced (variables, functions, arrays, OOP, forms, PDO)
+// ============================================================
+const curriculum = [
+  { id: 'basics', name: 'PHP Basics', icon: '🐘', steps: [
+    { title: 'Hello, PHP!', badge: 'LESSON 1', xp: 40,
+      question: `<div class="concept-block"><div class="concept-label">Your first script</div><div class="concept-text">PHP is embedded in HTML using <code>&lt;?php ... ?&gt;</code>. The <code>echo</code> statement outputs text. Use semicolons to end statements.</div></div>
+      <div class="example-block"><pre>&lt;?php<br>  echo "Hello World!";<br>?&gt;</pre></div>
+      <div class="task-block"><div class="task-title">⚡ Task</div><div class="task-text">Write PHP code that prints <code>PHP is awesome</code> using <code>echo</code>.</div><button class="hint-btn" onclick="toggleHint(this)">💡 Hint</button><div class="hint-reveal">&lt;?php echo "PHP is awesome"; ?&gt;</div></div>`,
+      starterCode: `<?php\n  // your code here\n  \n?>`,
+      check: (code) => { const ok = /echo\s+['"]PHP is awesome['"]/.test(code); return { ok, msg: ok ? '' : 'Use echo "PHP is awesome";' }; }
+    },
+    { title: 'Variables & Data Types', badge: 'LESSON 2', xp: 50,
+      question: `<div class="concept-block"><div class="concept-label">Variables in PHP</div><div class="concept-text">Variables start with <code>$</code>. Types: string, int, float, bool. PHP is loosely typed.</div></div>
+      <div class="example-block"><pre>$name = "Alice";<br>$age = 25;<br>$price = 19.99;</pre></div>
+      <div class="task-block"><div class="task-title">⚡ Task</div><div class="task-text">Declare a variable <code>$city</code> with value "Lagos" and <code>$population</code> with value 15000000. Then echo both with a space between.</div><button class="hint-btn" onclick="toggleHint(this)">💡 Hint</button><div class="hint-reveal">echo $city . " " . $population;</div></div>`,
+      starterCode: `<?php\n  $city = "Lagos";\n  $population = 15000000;\n  // echo both\n?>`,
+      check: (code) => { const hasCity = /\$city\s*=\s*['"]Lagos['"]/.test(code); const hasPop = /\$population\s*=\s*15000000/.test(code); const hasEcho = /echo.*\$city.*\$population/.test(code); return { ok: hasCity && hasPop && hasEcho, msg: 'Declare $city and $population, then echo them.' }; }
+    },
+    { title: 'Arithmetic & Concatenation', badge: 'LESSON 3', xp: 55,
+      question: `<div class="concept-block"><div class="concept-label">Math & strings</div><div class="concept-text">Use <code>+ - * /</code> for numbers, dot <code>.</code> for concatenation.</div></div>
+      <div class="task-block"><div class="task-title">⚡ Task</div><div class="task-text">Given <code>$a = 12; $b = 4;</code> compute product and echo "Product: 48".</div><button class="hint-btn" onclick="toggleHint(this)">💡 Hint</button><div class="hint-reveal">$result = $a * $b; echo "Product: " . $result;</div></div>`,
+      starterCode: `<?php\n  $a = 12; $b = 4;\n  // compute product\n?>`,
+      check: (code) => { return { ok: /echo.*Product:\s*48/.test(code) || /\$a\s*\*\s*\$b/.test(code), msg: 'Multiply and echo product 48' }; }
+    }
+  ]},
+  { id: 'arrays', name: 'Arrays', icon: '📚', steps: [
+    { title: 'Indexed Arrays', badge: 'LESSON 1', xp: 60,
+      question: `<div class="concept-block"><div class="concept-label">Arrays store multiple values</div><div class="concept-text"><code>$colors = array("red","green","blue");</code> or <code>[]</code> syntax.</div></div>
+      <div class="task-block"><div class="task-title">⚡ Task</div><div class="task-text">Create an array <code>$fruits</code> with "Mango","Orange","Pineapple". Then echo the second fruit (index 1).</div><button class="hint-btn" onclick="toggleHint(this)">💡 Hint</button><div class="hint-reveal">$fruits = ["Mango","Orange","Pineapple"]; echo $fruits[1];</div></div>`,
+      starterCode: `<?php\n  $fruits = [];\n  // echo second fruit\n?>`,
+      check: (code) => { const hasArr = /fruits\s*=\s*\[.*Mango.*Orange.*Pineapple/.test(code); const hasEcho = /echo\s+\$fruits\[1\]/.test(code); return { ok: hasArr && hasEcho, msg: "Declare array and echo \$fruits[1]" }; }
+    },
+    { title: 'Associative Arrays', badge: 'LESSON 2', xp: 70,
+      question: `<div class="concept-block"><div class="concept-label">Key => Value pairs</div><div class="concept-text"><code>$person = ["name"=>"John", "age"=>30];</code></div></div>
+      <div class="task-block"><div class="task-title">⚡ Task</div><div class="task-text">Create associative array <code>$student</code> with keys: 'name' => 'Aisha', 'grade' => 'A'. Then echo "Aisha scored A".</div><button class="hint-btn" onclick="toggleHint(this)">💡 Hint</button><div class="hint-reveal">echo $student['name'] . " scored " . $student['grade'];</div></div>`,
+      starterCode: `<?php\n  $student = [];\n  // echo\n?>`,
+      check: (code) => { return { ok: /'name'\s*=>\s*'Aisha'/.test(code) && /'grade'\s*=>\s*'A'/.test(code) && /echo.*\$student\['name'\]/.test(code), msg: 'Create assoc array and echo name + grade' }; }
+    }
+  ]},
+  { id: 'functions', name: 'Functions', icon: '⚙️', steps: [
+    { title: 'User-Defined Functions', badge: 'LESSON 1', xp: 80,
+      question: `<div class="concept-block"><div class="concept-label">Reusable blocks</div><div class="concept-text">Use <code>function name() { }</code>, return values.</div></div>
+      <div class="task-block"><div class="task-title">⚡ Task</div><div class="task-text">Write a function <code>multiply($x, $y)</code> that returns product. In main code, call it with 5 and 6 and echo the result.</div><button class="hint-btn" onclick="toggleHint(this)">💡 Hint</button><div class="hint-reveal">function multiply($x,$y){ return $x*$y; } echo multiply(5,6);</div></div>`,
+      starterCode: `<?php\n  function multiply($x, $y) {\n    // return\n  }\n  echo multiply(5,6);\n?>`,
+      check: (code) => { return { ok: /function multiply\(.*\).*return.*\*/.test(code) && /echo multiply\(5,6\)/.test(code), msg: 'Define multiply and echo call with 5,6 (result 30).' }; }
+    },
+    { title: 'Default Parameters', badge: 'LESSON 2', xp: 85,
+      question: `<div class="concept-block"><div class="concept-label">Default argument values</div><div class="task-block"><div class="task-title">⚡ Task</div><div class="task-text">Create <code>greet($name = "Guest")</code> that returns "Hello, $name!". Call without argument and echo.</div><button class="hint-btn" onclick="toggleHint(this)">💡 Hint</button><div class="hint-reveal">function greet($name="Guest"){ return "Hello, $name!"; } echo greet();</div></div>`,
+      starterCode: `<?php\n  function greet($name = "Guest") { \n    \n  }\n  echo greet();\n?>`,
+      check: (code) => { return { ok: /greet\(.*Guest.*\)/.test(code) && /Hello.*Guest/.test(code), msg: 'Function with default param returns "Hello, Guest!"' }; }
+    }
+  ]},
+  { id: 'superglobals', name: 'Forms & POST', icon: '🌐', steps: [
+    { title: 'Handling POST Data', badge: 'LESSON 1', xp: 100,
+      question: `<div class="concept-block"><div class="concept-label">$_POST superglobal</div><div class="concept-text">Retrieve form data sent via POST method.</div></div>
+      <div class="task-block"><div class="task-title">⚡ Task</div><div class="task-text">Simulate: Check if <code>$_POST['username']</code> is set, then echo "Welcome, " . username. Else echo "No name". (Assume form already sent) Write code that works with <code>$_POST</code>.</div><button class="hint-btn" onclick="toggleHint(this)">💡 Hint</button><div class="hint-reveal">if(isset($_POST['username'])){ echo "Welcome, ".$_POST['username']; } else { echo "No name"; }</div></div>`,
+      starterCode: `<?php\n  // Use isset and $_POST\n  if(isset($_POST['username'])) {\n    echo "Welcome, " . $_POST['username'];\n  } else {\n    echo "No name";\n  }\n?>`,
+      check: (code) => { return { ok: /isset\s*\(\s*\$_POST\['username'\]\s*\)/.test(code) && /echo.*Welcome/.test(code), msg: 'Use isset($_POST["username"])' }; }
+    }
+  ]},
+  { id: 'oop', name: 'OOP', icon: '🏛️', steps: [
+    { title: 'Simple Class', badge: 'LESSON 1', xp: 110,
+      question: `<div class="concept-block"><div class="concept-label">PHP Classes</div><div class="concept-text">Class with properties and methods.</div></div>
+      <div class="task-block"><div class="task-title">⚡ Task</div><div class="task-text">Create class <code>Car</code> with public property <code>$brand</code> and method <code>honk()</code> that returns "Beep!". Instantiate and echo honk.</div><button class="hint-btn" onclick="toggleHint(this)">💡 Hint</button><div class="hint-reveal">class Car { public $brand; function honk() { return "Beep!"; } } $c = new Car(); echo $c->honk();</div></div>`,
+      starterCode: `<?php\n  class Car {\n    \n  }\n  $myCar = new Car();\n  echo $myCar->honk();\n?>`,
+      check: (code) => { return { ok: /class Car/.test(code) && /function honk/.test(code) && /return "Beep!"/.test(code), msg: 'Define Car class with honk method returning Beep!' }; }
+    }
+  ]},
+  { id: 'pdo', name: 'PDO Database', icon: '🗄️', steps: [
+    { title: 'Connect & Query', badge: 'ADVANCED', xp: 150,
+      question: `<div class="concept-block"><div class="concept-label">PHP PDO Basics</div><div class="concept-text">PDO is secure database abstraction.</div></div>
+      <div class="task-block"><div class="task-title">⚡ Task</div><div class="task-text">Write code to create a PDO connection (MySQL: host localhost, db testdb, user root, pass ""). Then prepare a SELECT query <code>SELECT * FROM users</code> and <code>execute()</code>. Just show connection + prepare step.</div><button class="hint-btn" onclick="toggleHint(this)">💡 Hint</button><div class="hint-reveal">new PDO("mysql:host=localhost;dbname=testdb", "root", ""); $stmt = $pdo->prepare("SELECT * FROM users");</div></div>`,
+      starterCode: `<?php\n  try {\n    $pdo = new PDO("mysql:host=localhost;dbname=testdb", "root", "");\n    $stmt = $pdo->prepare("SELECT * FROM users");\n    echo "Connected";\n  } catch(PDOException $e){ echo "Error"; }\n?>`,
+      check: (code) => { return { ok: /new PDO\(.*mysql:host=localhost.*testdb/.test(code) && /prepare\s*\(.*SELECT/.test(code), msg: 'Create PDO and prepare SELECT' }; }
+    }
+  ]}
+];
+
+// State
+let state = {
+  chapterIdx: 0, stepIdx: 0, xp: 0, streak: 0,
+  completedSteps: new Set(),
+  completedChapters: new Set(),
+  hintUsed: false
+};
+
+function buildChapterNav() {
+  const nav = document.getElementById('chapter-nav');
+  nav.innerHTML = '';
+  curriculum.forEach((ch, i) => {
+    const tab = document.createElement('div');
+    tab.className = `chapter-tab ${i === state.chapterIdx ? 'active' : ''} ${state.completedChapters.has(i) ? 'done' : ''} ${!isUnlocked(i) ? 'locked' : ''}`;
+    tab.textContent = ch.icon + ' ' + ch.name;
+    tab.onclick = () => { if(isUnlocked(i)) { state.chapterIdx = i; state.stepIdx = 0; buildChapterNav(); loadStep(); } };
+    nav.appendChild(tab);
+  });
+}
+function isUnlocked(i) { if(i===0) return true; return state.completedChapters.has(i-1) || state.chapterIdx === i; }
+
+function loadStep() {
+  const ch = curriculum[state.chapterIdx];
+  const step = ch.steps[state.stepIdx];
+  document.getElementById('chapter-name').textContent = ch.name;
+  document.getElementById('step-counter').textContent = `${state.stepIdx+1}/${ch.steps.length}`;
+  document.getElementById('step-badge').textContent = step.badge;
+  document.getElementById('lesson-title').textContent = step.title;
+  document.getElementById('question-body').innerHTML = step.question;
+  document.getElementById('code-editor').value = step.starterCode;
+  document.getElementById('output-area').innerHTML = '<span class="out-muted">// Ready</span>';
+  document.getElementById('output-dot').className = 'output-dot';
+  let progress = ((state.stepIdx) / ch.steps.length) * 100;
+  document.getElementById('progress-fill').style.width = progress + '%';
+  updateLineNums();
+  updateStats();
+}
+function updateStats() {
+  document.getElementById('xp-count').innerText = state.xp;
+  document.getElementById('streak-count').innerText = state.streak;
+  document.getElementById('level-count').innerText = Math.floor(state.xp / 300) + 1;
+}
+function updateLineNums() {
+  const ta = document.getElementById('code-editor');
+  const lines = ta.value.split('\n').length;
+  document.getElementById('line-nums').innerHTML = Array(lines).fill().map((_,i)=>i+1).join('\n');
+}
+function handleTab(e) { if(e.key==='Tab'){ e.preventDefault(); const ta=e.target; const s=ta.selectionStart; ta.value=ta.value.slice(0,s)+'  '+ta.value.slice(s); ta.selectionStart=ta.selectionEnd=s+2; updateLineNums(); } }
+function resetCode() { loadStep(); }
+function toggleHint(btn) { const hint = btn.nextElementSibling; hint.classList.toggle('show'); btn.innerText = hint.classList.contains('show') ? '🙈 Hide' : '💡 Hint'; state.hintUsed = true; }
+
+function checkCode() {
+  let code = document.getElementById('code-editor').value;
+  const step = curriculum[state.chapterIdx].steps[state.stepIdx];
+  const outDiv = document.getElementById('output-area');
+  const dot = document.getElementById('output-dot');
+  dot.className = 'output-dot';
+  outDiv.innerHTML = `<span class="out-info">⏳ Checking...</span>`;
+
+  setTimeout(() => {
+    let result = step.check(code);
+    if(result.ok) {
+      dot.className = 'output-dot success';
+      outDiv.innerHTML = `<span class="out-success">✓ Correct! ${result.output ? result.output : ''}</span>`;
+      const stepKey = `${state.chapterIdx}-${state.stepIdx}`;
+      if(!state.completedSteps.has(stepKey)){
+        let earned = state.hintUsed ? Math.floor(step.xp * 0.7) : step.xp;
+        state.xp += earned;
+        state.streak++;
+        state.completedSteps.add(stepKey);
+        updateStats();
+        showFeedback(true, earned);
+        burstEffect();
+      } else { showFeedback(true, 0); }
+    } else {
+      dot.className = 'output-dot error';
+      outDiv.innerHTML = `<span class="out-error">✗ ${result.msg || 'Try again!'}</span>`;
+      state.streak = 0;
+      updateStats();
+      shakeEditor();
+    }
+    state.hintUsed = false;
+  }, 200);
+}
+
+function showFeedback(success, earned) {
+  const overlay = document.getElementById('feedback-overlay');
+  const titleDiv = document.getElementById('feedback-title');
+  const msgDiv = document.getElementById('feedback-msg');
+  const xpSpan = document.getElementById('xp-gained');
+  if(success){
+    titleDiv.innerText = '🎉 Correct!';
+    msgDiv.innerText = 'Amazing! You are mastering PHP.';
+    xpSpan.innerText = earned > 0 ? `+${earned} XP` : 'Already completed';
+    overlay.classList.add('show');
+  }
+}
+function nextStep() {
+  document.getElementById('feedback-overlay').classList.remove('show');
+  const ch = curriculum[state.chapterIdx];
+  if(state.stepIdx < ch.steps.length - 1) { state.stepIdx++; }
+  else {
+    state.completedChapters.add(state.chapterIdx);
+    if(state.chapterIdx < curriculum.length-1){
+      state.chapterIdx++;
+      state.stepIdx = 0;
+    }
+    buildChapterNav();
+  }
+  loadStep();
+}
+function shakeEditor() { const e = document.querySelector('.editor-panel'); e.style.transform = 'translateX(-4px)'; setTimeout(()=>e.style.transform='translateX(4px)',100); setTimeout(()=>e.style.transform='translateX(0)',200); }
+function burstEffect() { for(let i=0;i<16;i++){ const p=document.createElement('div'); p.className='particle'; p.style.position='fixed'; p.style.width='6px'; p.style.height='6px'; p.style.background='#f7c35c'; p.style.borderRadius='50%'; p.style.left='50%'; p.style.top='50%'; p.style.pointerEvents='none'; p.style.zIndex=999; document.body.appendChild(p); setTimeout(()=>p.remove(),500); } }
+
+init();
+function init() { buildChapterNav(); loadStep(); updateStats(); }
+</script>
+</body>
+</html>
